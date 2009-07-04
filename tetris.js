@@ -28,49 +28,55 @@ TetrisBoard.prototype = {
 	}
 };
 
-var shapeBitmaps = [
+var shapeBitmaps = new Array(7);
+
+shapeBitmaps[0] =
 [
  'XX',
  'XX',
- ],
+ ];
 
+shapeBitmaps[1] =
 [
  '  X  ',
  '  X  ',
  '  X  ',
  '  X  '
-],
+];
 
+shapeBitmaps[2] =
 [
  '  X',
  ' XX',
  ' X '
-],
+];
 
+shapeBitmaps[3] =
 [
  ' X ',
  ' XX',
  '  X'
-],
+];
 
+shapeBitmaps[4] =
 [
  ' X ',
  ' XX',
  ' X '
-],
+];
 
+shapeBitmaps[5] =
 [
  ' X ',
  ' X ',
  ' XX'
-],
+];
 
+shapeBitmaps[6] =
 [
  ' X ',
  ' X ',
  'XX '
-]
-
 ];
 
 function Shape(table, row, col, type) {
