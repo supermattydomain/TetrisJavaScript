@@ -25,11 +25,12 @@ table.board {
 	float: left;
 	width: 200px;
 	height: 200px;
-	padding: 0px;
-	border-width: 1px;
-	border-collapse: collapse;
-	border-color: #999999;
-	border-spacing: 0px;
+	/*padding: 1px;*/
+	border-style: solid;
+	border-width: 10px;
+	/*border-collapse: collapse;*/
+	border-color: #ffffff;
+	/*border-spacing: 1px;*/
 	empty-cells: show;
 }
 tr.board {
