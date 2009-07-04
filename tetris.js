@@ -30,11 +30,9 @@ Object.extend(TetrisBoard.prototype, {
 
 var shapeBitmaps = [
 [
- '    ',
- ' XX ',
- ' XX ',
- '    '
-],
+ 'XX',
+ 'XX',
+ ],
 
 [
  '  X ',
@@ -58,10 +56,10 @@ var shapeBitmaps = [
 ],
 
 [
+ '    ',
  ' X  ',
  ' XX ',
- ' X  ',
- '    ',
+ ' X  '
 ],
 
 [
@@ -80,40 +78,73 @@ var shapeBitmaps = [
 
 ];
 
-function Shape(table, row, col, type, rot) {
+function Shape(table, row, col, type) {
 	this.setDebug(true);
 	this.table = table;
 	this.row = row;
 	this.col = col;
 	this.type = type;
-	this.rot = rot;
+	this.rot = 0;
 	this.bitmap = shapeBitmaps[this.type];
 	this.show();
 }
 
 Object.extend(Shape.prototype, {
-	hide: function() {
+	hide : function() {
+		for ( var r = 0; r < this.bitmap.length; r++) {
+			for ( var c = 0; c < this.bitmap[0].length; c++) {
+				if (this.bitmap[r][c] != ' ') {
+					var square = this.table.rows[this.row + r].cells[this.col + c];
+					setClass(square, 'empty');
+				}
+			}
+		}
 	},
 	show: function() {
-		this.debugLog(this.bitmap);
+		// this.debugLog(this.bitmap);
 		for (var r = 0; r < this.bitmap.length; r++) {
 			for (var c = 0; c < this.bitmap[0].length; c++) {
 				var square = this.table.rows[this.row + r].cells[this.col + c];
-				setClass(square, this.bitmap[r][c] != ' ' ? 'shape' : 'empty');
+				if (this.bitmap[r][c] != ' ') {
+					setClass(square, 'shape');
+				}
 			}
 		}
 	},
 	rotate : function(clockwise) {
+		debugLog('Rotate');
 		this.hide();
-		if (clockwise) {
-			if (++rot > 3) {
-				rot = 0;
+		var row;
+		var col;
+		var newBitmap = new Array(this.bitmap.length);
+		for (row = 0; row < this.bitmap.length; row++) {
+			newBitmap[row] = new Array(this.bitmap[row].length);
+		}
+		// FIXME: I have the sense of clockwise inverted, and I don't see how.
+		if (!clockwise) {
+			if (++this.rot > 3) {
+				this.rot = 0;
+			}
+			// +row -> -col, newCol = inv(row)
+			// +col -> +row, newRow = col
+			for (row = 0; row < this.bitmap.length; row++) {
+				for (col = 0; col < this.bitmap[row].length; col++) {
+					newBitmap[row][col] = this.bitmap[col][this.bitmap.length - 1 - row];
+				}
 			}
 		} else {
-			if (--rot < 0) {
-				rot = 3;
+			// +row -> +col, newCol = row
+			// +col -> -row, newRow = inv(col)
+			if (--this.rot < 0) {
+				this.rot = 3;
+			}
+			for (row = 0; row < this.bitmap.length; row++) {
+				for (col = 0; col < this.bitmap[row].length; col++) {
+					newBitmap[row][col] = this.bitmap[this.bitmap[row].length - 1 - col][row];
+				}
 			}
 		}
+		this.bitmap = newBitmap;
 		this.show();
 	}
 });
