@@ -91,10 +91,11 @@ function Shape(table, row, col, type) {
 }
 
 Shape.prototype = {
+	empty: ' ',
 	hide : function() {
 		for ( var r = 0; r < this.bitmap.length; r++) {
 			for ( var c = 0; c < this.bitmap[0].length; c++) {
-				if (this.bitmap[r][c] != ' ') {
+				if (this.bitmap[r][c] != this.empty) {
 					var square = this.table.rows[this.row + r].cells[this.col + c];
 					setClass(square, 'empty');
 				}
@@ -106,7 +107,7 @@ Shape.prototype = {
 		for (var r = 0; r < this.bitmap.length; r++) {
 			for (var c = 0; c < this.bitmap[0].length; c++) {
 				var square = this.table.rows[this.row + r].cells[this.col + c];
-				if (this.bitmap[r][c] != ' ') {
+				if (this.bitmap[r][c] != this.empty) {
 					setClass(square, 'shape');
 				}
 			}
@@ -135,7 +136,7 @@ Shape.prototype = {
 					oldCol = newRow;
 					oldRow = newBitmap[newRow].length - 1 - newCol;
 					if (oldRow < 0 || oldRow >= this.bitmap.length || oldCol >= this.bitmap[oldRow].length) {
-						newBitmap[newRow][newCol] = ' ';
+						newBitmap[newRow][newCol] = this.empty;
 					} else {
 						newBitmap[newRow][newCol] = this.bitmap[oldRow][oldCol];
 					}
@@ -152,7 +153,7 @@ Shape.prototype = {
 					oldCol = newBitmap.length - 1 - newRow;
 					oldRow = newCol;
 					if (oldCol < 0 || oldRow >= this.bitmap.length || oldCol >= this.bitmap[oldRow].length) {
-						newBitmap[newRow][newCol] = ' ';
+						newBitmap[newRow][newCol] = this.empty;
 					} else {
 						newBitmap[newRow][newCol] = this.bitmap[oldRow][oldCol];
 					}
@@ -161,5 +162,47 @@ Shape.prototype = {
 		}
 		this.bitmap = newBitmap;
 		this.show();
+	},
+	isEmpty: function(cell) {
+		return cell.className == 'empty';
+	},
+	blocked: function() {
+		var row;
+		var col;
+		for (col = 0; col < this.bitmap[0].length; col++) {
+			for (row = this.bitmap.length - 1; row >= 0; row--) {
+				if (this.bitmap[row][col] != this.empty) {
+					break;
+				}
+			}
+			if (row < 0) {
+				// this.debugLog('Column ' + col + ' is empty');
+				continue; // empty column
+			}
+			if (this.row + row + 1 >= this.table.rows.length) {
+				// this.debugLog('Blocked by bottom of board');
+				return true; // blocked by bottom of board
+			}
+			if (!this.isEmpty(this.table.rows[this.row + row + 1].cells[this.col + col])) {
+				// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' + 1 = ' + (this.row + row + 1) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
+				return true; // blocked by existing square
+			}
+		}
+		// this.debugLog('Not blocked');
+		return false; // TODO: blocked checking
+	},
+	fall: function() {
+		if (this.blocked()) {
+			return false;
+		}
+		this.hide();
+		this.row++;
+		this.show();
+		return true;
+	},
+	drop: function() {
+		while (this.fall()) {
+			// NOP
+		}
 	}
 };

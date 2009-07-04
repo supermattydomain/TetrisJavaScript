@@ -28,6 +28,8 @@ board.currentShape.show();
 <div id="controls">
 	<form action="">
 		<button onclick="board.pause();return false;" value="Pause">Pause</button>
+		<button onclick="board.currentShape.fall();return false;" value="Fall">Fall</button>
+		<button onclick="board.currentShape.drop();return false;" value="Drop">Drop</button>
 		<button onclick="board.currentShape.rotate(true);return false;" value="Rotate clockwise">Rotate clockwise</button>
 		<button onclick="board.currentShape.rotate(false);return false;" value="Rotate anti-clockwise">Rotate anti-clockwise</button>
 	</form>
