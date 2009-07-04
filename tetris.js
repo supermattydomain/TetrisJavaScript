@@ -8,7 +8,7 @@ function TetrisBoard(width, height, div) {
 	this.debugLog("TetrisBoard end init");
 }
 
-Object.extend(TetrisBoard.prototype, {
+TetrisBoard.prototype = {
 	createGrid : function() {
 		this.table = dce('table');
 		setClass(this.table, 'board');
@@ -26,7 +26,7 @@ Object.extend(TetrisBoard.prototype, {
 	getTable: function() {
 		return this.table;
 	}
-});
+};
 
 var shapeBitmaps = [
 [
@@ -84,7 +84,7 @@ function Shape(table, row, col, type) {
 	this.show();
 }
 
-Object.extend(Shape.prototype, {
+Shape.prototype = {
 	hide : function() {
 		for ( var r = 0; r < this.bitmap.length; r++) {
 			for ( var c = 0; c < this.bitmap[0].length; c++) {
@@ -156,4 +156,4 @@ Object.extend(Shape.prototype, {
 		this.bitmap = newBitmap;
 		this.show();
 	}
-});
+};
