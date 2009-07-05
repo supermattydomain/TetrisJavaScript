@@ -23,8 +23,6 @@ div.controls {
 }
 table.board {
 	float: left;
-	width: 200px;
-	height: 200px;
 	/*padding: 1px;*/
 	border-style: solid;
 	border-width: 10px;
@@ -36,8 +34,12 @@ table.board {
 tr.board {
 }
 td.empty {
+	width: 16px;
+	height: 16px;
 	background-color: #000000;
 }
 td.shape {
+	width: 16px;
+	height: 16px;
 	background-color: #00ff00;
 }

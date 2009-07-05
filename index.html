@@ -17,12 +17,12 @@
 
 <script language="javascript" type="text/javascript"><!--
 var width = 10;
-var height = 10;
+var height = 20;
 var board = new TetrisBoard(width, height, $('boardDiv'));
 // --></script>
 
 <div id="controls">
-	<form action="">
+	<form action="" onsubmit="return false;">
 		<button onclick="board.pause();return false;" value="Pause">Pause</button>
 		<button onclick="board.createShape();return false;" value="Create shape">Create shape</button>
 		<button onclick="board.currentShape.moveLeft();return false;" value="Fall">Left</button>
