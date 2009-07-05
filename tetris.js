@@ -1,4 +1,5 @@
 var shapeBitmaps = new Array(7);
+var shapeClasses = new Array(shapeBitmaps.length);
 
 function TetrisBoard(width, height, div) {
 	this.setDebug(true);
@@ -37,10 +38,11 @@ TetrisBoard.prototype = {
 	setEmpty: function(row, col) {
 		setClass(this.table.rows[row].cells[col], 'empty');
 	},
-	setShape: function(row, col) {
-		setClass(this.table.rows[row].cells[col], 'shape');
+	setShape: function(row, col, type) {
+		setClass(this.table.rows[row].cells[col], shapeClasses[type]);
 	},
 	createShape: function() {
+		// TODO: Next shape tracking/display
 		var type = Math.round(Math.random() * shapeBitmaps.length - 0.5);
 		// FIXME: Is Math.random strictly *between* 0 and 1?
 		// FIXME: Does Math.round round halves up or down or towards zero or what?
@@ -107,6 +109,36 @@ TetrisBoard.prototype = {
 				row--;
 			}
 		}
+	},
+	drop: function() {
+		if (!this.currentShape) {
+			this.createShape();
+		}
+		this.currentShape.drop();
+	},
+	moveLeft: function() {
+		if (!this.currentShape) {
+			this.createShape();
+		}
+		this.currentShape.moveLeft();
+	},
+	moveRight: function() {
+		if (!this.currentShape) {
+			this.createShape();
+		}
+		this.currentShape.moveRight();
+	},
+	fall: function() {
+		if (!this.currentShape) {
+			this.createShape();
+		}
+		this.currentShape.fall();
+	},
+	rotate: function(clockwise) {
+		if (!this.currentShape) {
+			this.createShape();
+		}
+		this.currentShape.rotate(clockwise);
 	}
 };
 
@@ -140,7 +172,7 @@ Shape.prototype = {
 						// this.debugLog('Shape blocked in show at ' + this.row + ' + ' + r + ', ' + this.col + ' + ' + c);
 						return false; // blocked
 					}
-					this.board.setShape(this.row + r, this.col + c);
+					this.board.setShape(this.row + r, this.col + c, this.type);
 				}
 			}
 		}
@@ -192,7 +224,7 @@ Shape.prototype = {
 				}
 			}
 		}
-		// TODO: blocked checking of new bitmap
+		// TODO: blocked checking for rotated shape bitmap
 		this.hide();
 		this.bitmap = newBitmap;
 		this.show();
@@ -320,6 +352,7 @@ shapeBitmaps[0] =
 	 'XX',
 	 'XX',
 	 ];
+shapeClasses[0] = 'blue';
 
 shapeBitmaps[1] =
 	[
@@ -328,6 +361,7 @@ shapeBitmaps[1] =
 	 '  X  ',
 	 '  X  '
 	];
+shapeClasses[1] = 'red';
 
 shapeBitmaps[2] =
 	[
@@ -335,6 +369,7 @@ shapeBitmaps[2] =
 	 'XX',
 	 'X '
 	];
+shapeClasses[2] = 'yellow';
 
 shapeBitmaps[3] =
 	[
@@ -342,6 +377,7 @@ shapeBitmaps[3] =
 	 'XX',
 	 ' X'
 	];
+shapeClasses[3] = 'magenta';
 
 shapeBitmaps[4] =
 	[
@@ -349,6 +385,7 @@ shapeBitmaps[4] =
 	 ' XX',
 	 ' X '
 	];
+shapeClasses[4] = 'green';
 
 shapeBitmaps[5] =
 	[
@@ -356,6 +393,7 @@ shapeBitmaps[5] =
 	 ' X ',
 	 ' XX'
 	];
+shapeClasses[5] = 'brightyellow';
 
 shapeBitmaps[6] =
 	[
@@ -363,3 +401,4 @@ shapeBitmaps[6] =
 	 ' X ',
 	 'XX '
 	];
+shapeClasses[6] = 'brightblue';

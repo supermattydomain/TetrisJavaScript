@@ -22,13 +22,13 @@ div.controls {
 	clear: both;
 }
 table.board {
+	background-color: #000000;
 	float: left;
-	/*padding: 1px;*/
-	border-style: solid;
-	border-width: 10px;
-	/*border-collapse: collapse;*/
-	border-color: #ffffff;
-	/*border-spacing: 1px;*/
+	padding: 0px;
+	border-style: none;
+	border-width: 0px;
+	border-collapse: separate;
+	border-spacing: 2px;
 	empty-cells: show;
 }
 tr.board {
@@ -38,8 +38,38 @@ td.empty {
 	height: 16px;
 	background-color: #000000;
 }
-td.shape {
+td.blue {
+	width: 16px;
+	height: 16px;
+	background-color: #000099;
+}
+td.red {
+	width: 16px;
+	height: 16px;
+	background-color: #ff0000;
+}
+td.yellow {
+	width: 16px;
+	height: 16px;
+	background-color: #999900;
+}
+td.magenta {
+	width: 16px;
+	height: 16px;
+	background-color: #ff00ff;
+}
+td.green {
 	width: 16px;
 	height: 16px;
 	background-color: #00ff00;
+}
+td.brightyellow {
+	width: 16px;
+	height: 16px;
+	background-color: #ffff00;
+}
+td.brightblue {
+	width: 16px;
+	height: 16px;
+	background-color: #0000ff;
 }

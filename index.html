@@ -32,14 +32,12 @@ function timerFunc() {
 function startRunning(delay) {
 	interval = setInterval("timerFunc()", delay);
 	$('toggleButton').value = 'Pause';
-	$('toggleButton').firstChild.value = 'Pause';
 }
 
 function stopRunning() {
 	clearInterval(interval);
 	interval = undefined;
 	$('toggleButton').value = 'Go';
-	$('toggleButton').firstChild.value = 'Go';
 }
 
 function toggleRunning(delay) {
@@ -59,12 +57,12 @@ function toggleRunning(delay) {
 		<!--
 		<input onclick="board.createShape();return false;" value="Create shape">
 		-->
-		<input type="button" onclick="board.currentShape.fall();return false;" value="Fall">
-		<input type="button" onclick="board.currentShape.moveLeft();return false;" value="Left">
-		<input type="button" onclick="board.currentShape.moveRight();return false;" value="Right">
-		<input type="button" onclick="board.currentShape.drop();return false;" value="Drop">
-		<input type="button" onclick="board.currentShape.rotate(true);return false;" value="Rotate clockwise">
-		<input type="button" onclick="board.currentShape.rotate(false);return false;" value="Rotate anti-clockwise">
+		<input type="button" onclick="board.fall();return false;" value="Fall">
+		<input type="button" onclick="board.moveLeft();return false;" value="Left">
+		<input type="button" onclick="board.moveRight();return false;" value="Right">
+		<input type="button" onclick="board.drop();return false;" value="Drop">
+		<input type="button" onclick="board.rotate(true);return false;" value="Rotate clockwise">
+		<input type="button" onclick="board.rotate(false);return false;" value="Rotate anti-clockwise">
 	</form>
 </div>
 
