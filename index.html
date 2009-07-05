@@ -19,15 +19,14 @@
 var width = 10;
 var height = 10;
 var board = new TetrisBoard(width, height, $('boardDiv'));
-board.currentShape = new Shape(board.getTable(), 0, 0, 5);
-board.currentShape.show();
-// board.currentShape.hide();
-// board.currentShape.show();
 // --></script>
 
 <div id="controls">
 	<form action="">
 		<button onclick="board.pause();return false;" value="Pause">Pause</button>
+		<button onclick="board.createShape();return false;" value="Create shape">Create shape</button>
+		<button onclick="board.currentShape.moveLeft();return false;" value="Fall">Left</button>
+		<button onclick="board.currentShape.moveRight();return false;" value="Fall">Right</button>
 		<button onclick="board.currentShape.fall();return false;" value="Fall">Fall</button>
 		<button onclick="board.currentShape.drop();return false;" value="Drop">Drop</button>
 		<button onclick="board.currentShape.rotate(true);return false;" value="Rotate clockwise">Rotate clockwise</button>

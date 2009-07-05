@@ -1,3 +1,5 @@
+var shapeBitmaps = new Array(7);
+
 function TetrisBoard(width, height, div) {
 	this.setDebug(true);
 	this.debugLog("TetrisBoard init");
@@ -25,10 +27,13 @@ TetrisBoard.prototype = {
 	},
 	getTable: function() {
 		return this.table;
+	},
+	createShape: function() {
+		var type = Math.round(Math.random() * (shapeBitmaps.length - 1));
+		this.currentShape = new Shape(this.table, 0, 0, type);
+		this.currentShape.show();
 	}
 };
-
-var shapeBitmaps = new Array(7);
 
 shapeBitmaps[0] =
 [
@@ -46,16 +51,16 @@ shapeBitmaps[1] =
 
 shapeBitmaps[2] =
 [
- '  X',
- ' XX',
- ' X '
+ ' X',
+ 'XX',
+ 'X '
 ];
 
 shapeBitmaps[3] =
 [
- ' X ',
- ' XX',
- '  X'
+ 'X ',
+ 'XX',
+ ' X'
 ];
 
 shapeBitmaps[4] =
@@ -106,8 +111,8 @@ Shape.prototype = {
 		// this.debugLog(this.bitmap);
 		for (var r = 0; r < this.bitmap.length; r++) {
 			for (var c = 0; c < this.bitmap[0].length; c++) {
-				var square = this.table.rows[this.row + r].cells[this.col + c];
 				if (this.bitmap[r][c] != this.empty) {
+					var square = this.table.rows[this.row + r].cells[this.col + c];
 					setClass(square, 'shape');
 				}
 			}
@@ -115,7 +120,6 @@ Shape.prototype = {
 	},
 	rotate : function(clockwise) {
 		debugLog('Rotate');
-		this.hide();
 		var newRow;
 		var newCol;
 		var oldCol;
@@ -160,16 +164,20 @@ Shape.prototype = {
 				}
 			}
 		}
+		// TODO: blocked checking of new bitmap
+		this.hide();
 		this.bitmap = newBitmap;
 		this.show();
 	},
 	isEmpty: function(cell) {
 		return cell.className == 'empty';
 	},
-	blocked: function() {
+	blockedDown: function() {
+		// this.debugLog('blockedDown');
 		var row;
 		var col;
 		for (col = 0; col < this.bitmap[0].length; col++) {
+			// Find the bottom-most filled square in the shape's bitmap in this column 
 			for (row = this.bitmap.length - 1; row >= 0; row--) {
 				if (this.bitmap[row][col] != this.empty) {
 					break;
@@ -189,14 +197,86 @@ Shape.prototype = {
 			}
 		}
 		// this.debugLog('Not blocked');
-		return false; // TODO: blocked checking
+		return false;
+	},
+	blockedRight: function() {
+		// this.debugLog('blockedRight');
+		var row;
+		var col;
+		for (row = 0; row < this.bitmap.length; row++) {
+			// Find the right-most filled square in the shape's bitmap in this row
+			for (col = this.bitmap[row].length - 1; col >= 0; col--) {
+				if (this.bitmap[row][col] != this.empty) {
+					break;
+				}
+			}
+			if (col < 0) {
+				// this.debugLog('Row ' + row + ' is empty');
+				continue; // empty row
+			}
+			if (this.col + col + 1 >= this.table.rows[this.row + row].cells.length) {
+				// this.debugLog('Blocked by right of board');
+				return true; // blocked by right of board
+			}
+			if (!this.isEmpty(this.table.rows[this.row + row].cells[this.col + col + 1])) {
+				// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' + 1 = ' + (this.col + col + 1));
+				return true; // blocked by existing square
+			}
+		}
+		// this.debugLog('Not blocked');
+		return false;
+	},
+	blockedLeft: function() {
+		// this.debugLog('blockedLeft');
+		var row;
+		var col;
+		for (row = 0; row < this.bitmap.length; row++) {
+			// Find the left-most filled square in the shape's bitmap in this row
+			for (col = 0; col < this.bitmap[row].length; col++) {
+				if (this.bitmap[row][col] != this.empty) {
+					break;
+				}
+			}
+			if (col >= this.bitmap[row].length) {
+				// this.debugLog('Row ' + row + ' is empty');
+				continue; // empty row
+			}
+			if (this.col + col - 1 < 0) {
+				// this.debugLog('Blocked by left of board');
+				return true; // blocked by left of board
+			}
+			if (!this.isEmpty(this.table.rows[this.row + row].cells[this.col + col - 1])) {
+				// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' - 1 = ' + (this.col + col - 1));
+				return true; // blocked by existing square
+			}
+		}
+		// this.debugLog('Not blocked');
+		return false;
 	},
 	fall: function() {
-		if (this.blocked()) {
+		if (this.blockedDown()) {
 			return false;
 		}
 		this.hide();
 		this.row++;
+		this.show();
+		return true;
+	},
+	moveLeft: function() {
+		if (this.blockedLeft()) {
+			return false;
+		}
+		this.hide();
+		this.col--;
+		this.show();
+		return true;
+	},
+	moveRight: function() {
+		if (this.blockedRight()) {
+			return false;
+		}
+		this.hide();
+		this.col++;
 		this.show();
 		return true;
 	},
