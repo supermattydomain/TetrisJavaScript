@@ -12,18 +12,24 @@
 <body>
 <h1>Tetris</h1>
 
+<div id="displayDiv" class="display">
+<div id="boardDiv" class="board"></div>
+<div id="nextShapeDiv" class="nextShape"></div>
+</div>
 <div id="logDiv" class="log"></div>
-<div id="boardDiv" class="tetris"></div>
 
 <script language="javascript" type="text/javascript"><!--
 var width = 10;
 var height = 20;
+var nextShapeDisplay = new NextShapeDisplay($('nextShapeDiv'));
 var board = new TetrisBoard(width, height, $('boardDiv'));
 
 var interval;
 
 function timerFunc() {
-	if (!board.tick()) {
+	if (board.tick()) {
+		nextShapeDisplay.display(board.nextType);
+	} else {
 		showLog('You lose!');
 		stopRunning();
 	}

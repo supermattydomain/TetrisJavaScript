@@ -7,6 +7,7 @@ function TetrisBoard(width, height, div) {
 	this.width = width;
 	this.height = height;
 	this.div = div;
+	this.nextType = this.randomShapeType();
 	this.createGrid();
 	// this.debugLog("TetrisBoard end init");
 }
@@ -35,14 +36,10 @@ TetrisBoard.prototype = {
 	isEmpty: function(row, col) {
 		return 'empty' == this.table.rows[row].cells[col].className;
 	},
-	setEmpty: function(row, col) {
-		setClass(this.table.rows[row].cells[col], 'empty');
-	},
 	setShape: function(row, col, type) {
 		setClass(this.table.rows[row].cells[col], shapeClasses[type]);
 	},
-	createShape: function() {
-		// TODO: Next shape tracking/display
+	randomShapeType: function() {
 		var type = Math.round(Math.random() * shapeBitmaps.length - 0.5);
 		// FIXME: Is Math.random strictly *between* 0 and 1?
 		// FIXME: Does Math.round round halves up or down or towards zero or what?
@@ -52,6 +49,11 @@ TetrisBoard.prototype = {
 		if (type >= shapeBitmaps.length) {
 			type = shapeBitmaps.length - 1;
 		}
+		return type;
+	},
+	createShape: function() {
+		var type = this.nextType;
+		this.nextType = this.randomShapeType();
 		this.currentShape = new Shape(this, 0, Math.round(this.getWidth() / 2 - shapeBitmaps[type][0].length / 2), type);
 		return this.currentShape.show();
 	},
@@ -74,6 +76,9 @@ TetrisBoard.prototype = {
 			}
 		}
 		return true;
+	},
+	setEmpty: function(row, col) {
+		setClass(this.table.rows[row].cells[col], 'empty');
 	},
 	setRowEmpty: function(row) {
 		for (var col = 0; col < this.getWidth(); col++) {
@@ -343,6 +348,75 @@ Shape.prototype = {
 	drop: function() {
 		while (this.fall()) {
 			// NOP
+		}
+	}
+};
+
+function NextShapeDisplay(div) {
+	this.div = div;
+	this.calcSize();
+	this.createGrid();
+}
+
+NextShapeDisplay.prototype = {
+	calcSize: function() {
+		this.width = 0;
+		this.height = 0;
+		for (var type = 0; type < shapeBitmaps.length; type++) {
+			if (shapeBitmaps[type].length > this.height) {
+				this.height = shapeBitmaps[type].length;
+			}
+			for (var row = 0; row < shapeBitmaps[type].length; row++) {
+				if (shapeBitmaps[type][row].length > this.width) {
+					this.width = shapeBitmaps[type][row].length;
+				}
+			}
+		}
+	},
+	createGrid: function() {
+		this.table = dce('table');
+		setClass(this.table, 'board');
+		this.div.appendChild(this.table);
+		for (var row = 0; row < this.height; row++) {
+			var rowElt = this.table.insertRow(-1);
+			setClass(rowElt, 'board');
+			for (var col = 0; col < this.width; col++) {
+				var cellElt = rowElt.insertCell(-1);
+				setClass(cellElt, 'empty');
+				// cellElt.appendChild(dctn(' '));
+			}
+		}
+	},
+	display: function(type) {
+		this.clear();
+		this.currentShape = new Shape(this, 0, 0, type);
+		this.currentShape.show();
+	},
+	isEmpty: function(row, col) {
+		return true;
+	},
+	getHeight: function() {
+		return this.height;
+	},
+	getWidth: function() {
+		return this.width;
+	},
+	// TODO: Factor out remaining methods into superclass
+	setShape: function(row, col, type) {
+		setClass(this.table.rows[row].cells[col], shapeClasses[type]);
+	},
+	setEmpty: function(row, col) {
+		setClass(this.table.rows[row].cells[col], 'empty');
+	},
+	setRowEmpty: function(row) {
+		for (var col = 0; col < this.getWidth(); col++) {
+			this.setEmpty(row, col);
+		}
+	},
+	clear: function() {
+		this.currentShape = null;
+		for (var row = 0; row < this.getHeight(); row++) {
+			this.setRowEmpty(row);
 		}
 	}
 };
