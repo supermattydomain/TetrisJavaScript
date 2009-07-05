@@ -19,18 +19,51 @@
 var width = 10;
 var height = 20;
 var board = new TetrisBoard(width, height, $('boardDiv'));
+
+var interval;
+
+function timerFunc() {
+	if (!board.tick()) {
+		stopRunning();
+		showLog('You lose!');
+	}
+}
+
+function startRunning(delay) {
+	interval = setInterval("timerFunc()", delay);
+	$('toggleButton').value = 'Pause';
+	$('toggleButton').firstChild.value = 'Pause';
+}
+
+function stopRunning() {
+	clearInterval(interval);
+	interval = undefined;
+	$('toggleButton').value = 'Go';
+	$('toggleButton').firstChild.value = 'Go';
+}
+
+function toggleRunning(delay) {
+	if (interval) {
+		stopRunning();
+	} else {
+		startRunning(delay);
+	}
+}
+
 // --></script>
 
 <div id="controls">
 	<form action="" onsubmit="return false;">
-		<button onclick="board.pause();return false;" value="Pause">Pause</button>
-		<button onclick="board.createShape();return false;" value="Create shape">Create shape</button>
-		<button onclick="board.currentShape.moveLeft();return false;" value="Fall">Left</button>
-		<button onclick="board.currentShape.moveRight();return false;" value="Fall">Right</button>
-		<button onclick="board.currentShape.fall();return false;" value="Fall">Fall</button>
-		<button onclick="board.currentShape.drop();return false;" value="Drop">Drop</button>
-		<button onclick="board.currentShape.rotate(true);return false;" value="Rotate clockwise">Rotate clockwise</button>
-		<button onclick="board.currentShape.rotate(false);return false;" value="Rotate anti-clockwise">Rotate anti-clockwise</button>
+		<input type="button" id="toggleButton" onclick="toggleRunning(1000);return false;" value="Go">
+		<!--
+		<input onclick="board.createShape();return false;" value="Create shape">
+		-->
+		<input type="button" onclick="board.currentShape.fall();return false;" value="Fall">
+		<input type="button" onclick="board.currentShape.moveLeft();return false;" value="Left">
+		<input type="button" onclick="board.currentShape.moveRight();return false;" value="Right">
+		<input type="button" onclick="board.currentShape.drop();return false;" value="Drop">
+		<input type="button" onclick="board.currentShape.rotate(true);return false;" value="Rotate clockwise">
+		<input type="button" onclick="board.currentShape.rotate(false);return false;" value="Rotate anti-clockwise">
 	</form>
 </div>
 

@@ -2,12 +2,12 @@ var shapeBitmaps = new Array(7);
 
 function TetrisBoard(width, height, div) {
 	this.setDebug(true);
-	this.debugLog("TetrisBoard init");
+	// this.debugLog("TetrisBoard init");
 	this.width = width;
 	this.height = height;
 	this.div = div;
 	this.createGrid();
-	this.debugLog("TetrisBoard end init");
+	// this.debugLog("TetrisBoard end init");
 }
 
 TetrisBoard.prototype = {
@@ -31,11 +31,8 @@ TetrisBoard.prototype = {
 	getHeight: function() {
 		return this.table.rows.length;
 	},
-	isEmptyCell: function(cell) {
-		return cell.className == 'empty';
-	},
 	isEmpty: function(row, col) {
-		return this.isEmptyCell(this.table.rows[row].cells[col]);
+		return 'empty' == this.table.rows[row].cells[col].className;
 	},
 	setEmpty: function(row, col) {
 		setClass(this.table.rows[row].cells[col], 'empty');
@@ -53,9 +50,20 @@ TetrisBoard.prototype = {
 		if (type >= shapeBitmaps.length) {
 			type = shapeBitmaps.length - 1;
 		}
-		type = 0; // FIXME: For testing filled rows detection
-		this.currentShape = new Shape(this, 0, this.getWidth() / 2 - shapeBitmaps[type][0].length / 2, type);
-		this.currentShape.show();
+		this.currentShape = new Shape(this, 0, Math.round(this.getWidth() / 2 - shapeBitmaps[type][0].length / 2), type);
+		return this.currentShape.show();
+	},
+	tick: function() {
+		if (this.currentShape) {
+			// this.debugLog('Current shape falling');
+			this.currentShape.fall();
+			return true;
+		} else {
+			// this.debugLog('Creating new shape');
+			var ret = this.createShape();
+			// this.debugLog('Created new shape');
+			return ret;
+		}
 	},
 	isRowFilled: function(row) {
 		for (var col = 0; col < this.getWidth(); col++) {
@@ -65,7 +73,7 @@ TetrisBoard.prototype = {
 		}
 		return true;
 	},
-	clearRow: function(row) {
+	setRowEmpty: function(row) {
 		for (var col = 0; col < this.getWidth(); col++) {
 			this.setEmpty(row, col);
 		}
@@ -82,7 +90,7 @@ TetrisBoard.prototype = {
 		for (/* NOP */; row > 0; row--) {
 			this.copyRow(row - 1, row);
 		}
-		this.clearRow(0);
+		this.setRowEmpty(0);
 	},
 	zapFilledRows: function() {
 		// this.debugLog('zapFilledRows');
@@ -97,14 +105,13 @@ TetrisBoard.prototype = {
 };
 
 function Shape(board, row, col, type) {
-	// this.setDebug(true);
+	this.setDebug(true);
 	this.board = board;
 	this.row = row;
 	this.col = col;
 	this.type = type;
 	this.rot = 0;
 	this.bitmap = shapeBitmaps[this.type];
-	this.show();
 }
 
 Shape.prototype = {
@@ -119,14 +126,19 @@ Shape.prototype = {
 		}
 	},
 	show: function() {
-		// this.debugLog(this.bitmap);
+		// this.debugLog('Show shape');
 		for (var r = 0; r < this.bitmap.length; r++) {
 			for (var c = 0; c < this.bitmap[0].length; c++) {
 				if (this.bitmap[r][c] != this.empty) {
+					if (!this.board.isEmpty(this.row + r, this.col + c)) {
+						// this.debugLog('Shape blocked in show at ' + this.row + ' + ' + r + ', ' + this.col + ' + ' + c);
+						return false; // blocked
+					}
 					this.board.setShape(this.row + r, this.col + c);
 				}
 			}
 		}
+		return true;
 	},
 	rotate : function(clockwise) {
 		debugLog('Rotate');
