@@ -78,6 +78,12 @@ TetrisBoard.prototype = {
 			this.setEmpty(row, col);
 		}
 	},
+	clear: function() {
+		this.currentShape = null;
+		for (var row = 0; row < this.getHeight(); row++) {
+			this.setRowEmpty(row);
+		}
+	},
 	copyRow: function(srcRow, dstRow) {
 		for (var col = 0; col < this.getWidth(); col++) {
 			var srcCell = this.table.rows[srcRow].cells[col];
