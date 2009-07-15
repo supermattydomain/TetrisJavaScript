@@ -1,30 +1,35 @@
 var shapeBitmaps = new Array(7);
 var shapeClasses = new Array(shapeBitmaps.length);
 
-function TetrisBoard(width, height, div) {
+function TetrisBoard(width, height, div, input) {
 	this.setDebug(true);
 	// this.debugLog("TetrisBoard init");
 	this.width = width;
 	this.height = height;
 	this.div = div;
+	this.input = input;
 	this.nextType = this.randomShapeType();
 	this.createGrid();
+	this.initEvents();
 	// this.debugLog("TetrisBoard end init");
 }
 
 TetrisBoard.prototype = {
+	initRow : function(rowElt) {
+		setClass(rowElt, 'board');
+		for ( var col = 0; col < this.width; col++) {
+			var cellElt = rowElt.insertCell(-1);
+			setClass(cellElt, 'empty');
+			// cellElt.appendChild(dctn(' '));
+		}
+	},
 	createGrid : function() {
 		this.table = dce('table');
 		setClass(this.table, 'board');
 		this.div.appendChild(this.table);
 		for (var row = 0; row < this.height; row++) {
 			var rowElt = this.table.insertRow(-1);
-			setClass(rowElt, 'board');
-			for (var col = 0; col < this.width; col++) {
-				var cellElt = rowElt.insertCell(-1);
-				setClass(cellElt, 'empty');
-				// cellElt.appendChild(dctn(' '));
-			}
+			this.initRow(rowElt);
 		}
 	},
 	getWidth: function() {
@@ -40,6 +45,8 @@ TetrisBoard.prototype = {
 		setClass(this.table.rows[row].cells[col], shapeClasses[type]);
 	},
 	randomShapeType: function() {
+		// XXX: For testing:
+		// return 0;
 		var type = Math.round(Math.random() * shapeBitmaps.length - 0.5);
 		// FIXME: Is Math.random strictly *between* 0 and 1?
 		// FIXME: Does Math.round round halves up or down or towards zero or what?
@@ -98,20 +105,43 @@ TetrisBoard.prototype = {
 			setClass(dstCell, srcCell.className);
 		}
 	},
-	zapRow: function(row) {
-		// this.debugLog('Zap row ' + row);
-		for (/* NOP */; row > 0; row--) {
-			this.copyRow(row - 1, row);
-		}
-		this.setRowEmpty(0);
+	insertBlankRow : function() {
+		rowElt = this.table.insertRow(0);
+		this.initRow(rowElt);
+	},
+	zapRowPuff: function(rowIndex) {
+		// this.debugLog('Zap row ' + rowIndex);
+		var rowElt = this.table.rows[rowIndex];
+		var tthis = this;
+		Effect.Puff(rowElt, {
+			afterFinish : function() {
+				tthis.table.deleteRow(rowIndex);
+				tthis.insertBlankRow();
+			}
+		});
+	},
+	zapRowDelete: function(rowIndex) {
+		this.table.deleteRow(rowIndex);
+		this.insertBlankRow();
 	},
 	zapFilledRows: function() {
 		// this.debugLog('zapFilledRows');
-		for (var row = this.getHeight() - 1; row >= 0; /* NOP */) {
-			if (this.isRowFilled(row)) {
-				this.zapRow(row);
+		/*
+		// FIXME: if row deletion occurs under our feet,
+		// decrementing the row index unconditionally
+		// will cause us to miss zappable rows.
+		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; rowIndex--) {
+			if (this.isRowFilled(rowIndex)) {
+				this.zapRowPuff(rowIndex);
+			}
+		}
+		*/
+		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
+			if (this.isRowFilled(rowIndex)) {
+				this.zapRowDelete(rowIndex);
+				// continue to examine same row index, which is now new row
 			} else {
-				row--;
+				rowIndex--;
 			}
 		}
 	},
@@ -144,6 +174,38 @@ TetrisBoard.prototype = {
 			this.createShape();
 		}
 		this.currentShape.rotate(clockwise);
+	},
+	initEvents: function() {
+		Event.observe(this.input, 'keydown', this.onKeyPress.bindAsEventListener(this));
+		this.input.focus();
+	},
+	onKeyPress : function(event) {
+		switch (event.keyCode) {
+		case Event.KEY_LEFT:
+			this.moveLeft();
+			break;
+		case Event.KEY_RIGHT:
+			this.moveRight();
+			break;
+		case Event.KEY_UP:
+			this.rotate(false);
+			break;
+		case Event.KEY_DOWN:
+			this.fall();
+			break;
+		case 32: // FIXME: Literal ' ' doesn't work
+			this.drop();
+			break;
+		case Event.KEY_RETURN:
+			showLog("Keypress: '" + event.keyCode + "'");
+			break;
+		case Event.KEY_TAB:
+		case Event.KEY_ESC:
+		default:
+			// showLog("Keypress: '" + event.keyCode + "'");
+			return;
+		}
+		Event.stop(event);
 	}
 };
 

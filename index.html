@@ -19,11 +19,21 @@
 </div>
 <div id="logDiv" class="log"></div>
 
+<div id="controls" class="controls">
+	<form action="" onsubmit="return false;">
+		<input type="button" onclick="board.clear();textarea.focus();return false;" value="Clear">
+		<input type="button" id="toggleButton" onclick="toggleRunning(1000);textarea.focus();return false;" value="Go">
+		<textarea rows="1" cols="1" id="dummytextarea"></textarea>
+	</form>
+</div>
+
 <script language="javascript" type="text/javascript"><!--
 var width = 10;
 var height = 20;
 var nextShapeDisplay = new NextShapeDisplay($('nextShapeDiv'));
-var board = new TetrisBoard(width, height, $('boardDiv'));
+var textarea = $('dummytextarea');
+textarea.readOnly = true;
+var board = new TetrisBoard(width, height, $('boardDiv'), textarea);
 
 var interval;
 
@@ -56,22 +66,6 @@ function toggleRunning(delay) {
 }
 
 // --></script>
-
-<div id="controls" class="controls">
-	<form action="" onsubmit="return false;">
-		<input type="button" onclick="board.clear();return false;" value="Clear">
-		<input type="button" id="toggleButton" onclick="toggleRunning(1000);return false;" value="Go">
-		<!--
-		<input onclick="board.createShape();return false;" value="Create shape">
-		-->
-		<input type="button" onclick="board.fall();return false;" value="Fall">
-		<input type="button" onclick="board.moveLeft();return false;" value="Left">
-		<input type="button" onclick="board.moveRight();return false;" value="Right">
-		<input type="button" onclick="board.drop();return false;" value="Drop">
-		<input type="button" onclick="board.rotate(true);return false;" value="Rotate clockwise">
-		<input type="button" onclick="board.rotate(false);return false;" value="Rotate anti-clockwise">
-	</form>
-</div>
 
 </body>
 </html>
