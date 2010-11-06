@@ -21,7 +21,7 @@
 
 <div id="controls" class="controls">
 	<form action="" onsubmit="return false;">
-		<input type="button" onclick="board.clear();textarea.focus();return false;" value="Clear">
+		<input type="button" id="clearButton" onclick="board.clear();textarea.focus();return false;" value="Clear">
 		<input type="button" id="toggleButton" onclick="toggleRunning(1000);textarea.focus();return false;" value="Go">
 		<textarea rows="1" cols="1" id="dummytextarea"></textarea>
 	</form>
@@ -31,11 +31,20 @@
 var width = 10;
 var height = 20;
 var nextShapeDisplay = new NextShapeDisplay($('nextShapeDiv'));
+//var textarea = $('toggleButton'); 
 var textarea = $('dummytextarea');
-textarea.readOnly = true;
+// textarea.readOnly = true;
 var board = new TetrisBoard(width, height, $('boardDiv'), textarea);
+textarea.focus();
 
 var interval;
+
+function handleKeyPress(event) {
+	board.onKeyPress(event);
+	event.preventDefault();
+	event.stopPropogation();
+	return false;
+}
 
 function timerFunc() {
 	if (board.tick()) {

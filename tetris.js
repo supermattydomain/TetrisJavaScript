@@ -111,14 +111,28 @@ TetrisBoard.prototype = {
 	},
 	zapRowPuff: function(rowIndex) {
 		// this.debugLog('Zap row ' + rowIndex);
-		var rowElt = this.table.rows[rowIndex];
 		var tthis = this;
-		Effect.Puff(rowElt, {
+		for (var col = 0; col < this.getWidth(); col++) {
+			this.setEmpty(rowIndex, col);
+			var cell = this.table.rows[rowIndex].cells[col];
+			var elt = dce('div');
+			cell.appendChild(elt);
+			setClass(elt, 'filledRow');
+			Effect.Puff(elt, { duration : 0.5 });
+		}
+		/*
+		Effect.Puff(elt, {
 			afterFinish : function() {
 				tthis.table.deleteRow(rowIndex);
 				tthis.insertBlankRow();
 			}
 		});
+		*/
+		// TODO: continue the below steps, and what the caller currently does upon return from here,
+		// in a timer function set to run after the animation is finished
+		tthis.table.deleteRow(rowIndex);
+		tthis.insertBlankRow();
+		zapFilledRows();
 	},
 	zapRowDelete: function(rowIndex) {
 		this.table.deleteRow(rowIndex);
@@ -126,50 +140,51 @@ TetrisBoard.prototype = {
 	},
 	zapFilledRows: function() {
 		// this.debugLog('zapFilledRows');
-		/*
-		// FIXME: if row deletion occurs under our feet,
-		// decrementing the row index unconditionally
-		// will cause us to miss zappable rows.
-		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; rowIndex--) {
-			if (this.isRowFilled(rowIndex)) {
-				this.zapRowPuff(rowIndex);
-			}
-		}
-		*/
+		var puff = false;
 		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
 			if (this.isRowFilled(rowIndex)) {
-				this.zapRowDelete(rowIndex);
-				// continue to examine same row index, which is now new row
+				if (puff) {
+					this.zapRowPuff(rowIndex);
+					return; // Work continues in timer after animation complete
+				} else {
+					this.zapRowDelete(rowIndex);
+					// continue to examine same row index, which is now new row
+				}
 			} else {
 				rowIndex--;
 			}
 		}
 	},
 	drop: function() {
+		// this.debugLog('Drop');
 		if (!this.currentShape) {
 			this.createShape();
 		}
 		this.currentShape.drop();
 	},
 	moveLeft: function() {
+		// this.debugLog('Left');
 		if (!this.currentShape) {
 			this.createShape();
 		}
 		this.currentShape.moveLeft();
 	},
 	moveRight: function() {
+		// this.debugLog('Right');
 		if (!this.currentShape) {
 			this.createShape();
 		}
 		this.currentShape.moveRight();
 	},
 	fall: function() {
+		// this.debugLog('Fall');
 		if (!this.currentShape) {
 			this.createShape();
 		}
 		this.currentShape.fall();
 	},
 	rotate: function(clockwise) {
+		// this.debugLog('Rotate ' + (clockwise ? "" : "counter-") + 'clockwise');
 		if (!this.currentShape) {
 			this.createShape();
 		}
@@ -179,33 +194,40 @@ TetrisBoard.prototype = {
 		Event.observe(this.input, 'keydown', this.onKeyPress.bindAsEventListener(this));
 		this.input.focus();
 	},
-	onKeyPress : function(event) {
-		switch (event.keyCode) {
+	onKeyPress : function(evt) {
+		// this.debugLog('Keypress ' + evt.keyCode);
+		var key = (evt) ? evt.which : event.keyCode;
+		// var s = String.fromCharCode(key);
+		switch (evt.keyCode) {
+		case 37:
 		case Event.KEY_LEFT:
 			this.moveLeft();
 			break;
+		case 39:
 		case Event.KEY_RIGHT:
 			this.moveRight();
 			break;
+		case 38:
 		case Event.KEY_UP:
 			this.rotate(false);
 			break;
+		case 40:
 		case Event.KEY_DOWN:
 			this.fall();
 			break;
+		case Event.KEY_SPACE:
 		case 32: // FIXME: Literal ' ' doesn't work
+		case ' ':
 			this.drop();
 			break;
-		case Event.KEY_RETURN:
-			showLog("Keypress: '" + event.keyCode + "'");
-			break;
-		case Event.KEY_TAB:
-		case Event.KEY_ESC:
+		case null:
+		case undefined:
 		default:
-			// showLog("Keypress: '" + event.keyCode + "'");
-			return;
+			// showLog("Unknown keycode: " + evt.keyCode);
+			break;
 		}
-		Event.stop(event);
+		Event.stop(evt);
+		return false;
 	}
 };
 
@@ -246,7 +268,7 @@ Shape.prototype = {
 		return true;
 	},
 	rotate : function(clockwise) {
-		debugLog('Rotate');
+		// this.debugLog('Rotate');
 		var newRow;
 		var newCol;
 		var oldCol;
@@ -293,8 +315,35 @@ Shape.prototype = {
 		}
 		// TODO: blocked checking for rotated shape bitmap
 		this.hide();
+		if (this.blockedRotate(newBitmap)) {
+			this.show();
+			return false;
+		}
 		this.bitmap = newBitmap;
 		this.show();
+		return true;
+	},
+	blockedRotate: function(newBitmap) {
+		for (var row = 0; row < newBitmap.length; row ++) {
+			for (var col = 0; col < newBitmap[row].length; col++) {
+				if (newBitmap[row][col] == this.empty) {
+					continue; // This square empty in this shape
+				}
+				if (this.row + row < 0 || this.row + row >= this.board.getHeight()) {
+					// this.debugLog('Blocked by top/bottom of board');
+					return true; // blocked by top or bottom edge of board
+				}
+				if (this.col + col < 0 || this.col + col >= this.board.getWidth()) {
+					// this.debugLog('Blocked by sides of board');
+					return true; // blocked by left or right edge of board
+				}
+				if (!this.board.isEmpty(this.row + row, this.col + col)) {
+					// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
+					return true; // blocked by existing square
+				}
+			}
+		}
+		return false;
 	},
 	blockedDown: function() {
 		// this.debugLog('blockedDown');

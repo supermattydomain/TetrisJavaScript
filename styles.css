@@ -32,6 +32,9 @@ div.nextShape {
 div.controls {
 	clear: both;
 }
+div.filledRow {
+	background-color: #ffff00;
+}
 table.board {
 	background-color: #000000;
 	float: left;
