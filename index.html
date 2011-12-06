@@ -30,13 +30,13 @@
 <script language="javascript" type="text/javascript"><!--
 var width = 10;
 var height = 20;
-var nextShapeDisplay = new NextShapeDisplay($('nextShapeDiv'));
+var nextShapeDisplay = new Tetris.NextShapeDisplay($('nextShapeDiv'));
 // TODO: Remove ugly textarea.
 // The div doesn't seem able to get keyboard focus,
 // so doesn't receive keyboard events.
 var textarea = $('dummytextarea');
 textarea.readOnly = true;
-var board = new TetrisBoard(width, height, $('boardDiv'), textarea);
+var board = new Tetris.TetrisBoard(width, height, $('boardDiv'), textarea);
 
 var interval;
 

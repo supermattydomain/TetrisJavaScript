@@ -1,7 +1,9 @@
-var shapeBitmaps;
-var shapeClasses;
+var Tetris = {
+		shapeBitmaps: undefined,
+		shapeClasses: undefined
+};
 
-function TetrisBoard(width, height, div, input) {
+Tetris.TetrisBoard = function(width, height, div, input) {
 	this.setDebug(true);
 	// this.debugLog("TetrisBoard init");
 	this.width = width;
@@ -12,9 +14,9 @@ function TetrisBoard(width, height, div, input) {
 	this.createGrid();
 	this.initEvents();
 	// this.debugLog("TetrisBoard end init");
-}
+};
 
-TetrisBoard.prototype = {
+Tetris.TetrisBoard.prototype = {
 	initRow : function(rowElt) {
 		setClass(rowElt, 'board');
 		for ( var col = 0; col < this.width; col++) {
@@ -42,26 +44,26 @@ TetrisBoard.prototype = {
 		return 'empty' == this.table.rows[row].cells[col].className;
 	},
 	setShape: function(row, col, type) {
-		setClass(this.table.rows[row].cells[col], shapeClasses[type]);
+		setClass(this.table.rows[row].cells[col], Tetris.shapeClasses[type]);
 	},
 	randomShapeType: function() {
 		// XXX: For testing:
 		// return 0;
-		var type = Math.round(Math.random() * shapeBitmaps.length - 0.5);
+		var type = Math.round(Math.random() * Tetris.shapeBitmaps.length - 0.5);
 		// FIXME: Is Math.random strictly *between* 0 and 1?
 		// FIXME: Does Math.round round halves up or down or towards zero or what?
 		if (type < 0) {
 			type = 0;
 		}
-		if (type >= shapeBitmaps.length) {
-			type = shapeBitmaps.length - 1;
+		if (type >= Tetris.shapeBitmaps.length) {
+			type = Tetris.shapeBitmaps.length - 1;
 		}
 		return type;
 	},
 	createShape: function() {
 		var type = this.nextType;
 		this.nextType = this.randomShapeType();
-		this.currentShape = new Shape(this, 0, Math.round(this.getWidth() / 2 - shapeBitmaps[type][0].length / 2), type);
+		this.currentShape = new Tetris.Shape(this, 0, Math.round(this.getWidth() / 2 - Tetris.shapeBitmaps[type][0].length / 2), type);
 		return this.currentShape.show();
 	},
 	tick: function() {
@@ -210,17 +212,17 @@ TetrisBoard.prototype = {
 	}
 };
 
-function Shape(board, row, col, type) {
+Tetris.Shape = function(board, row, col, type) {
 	this.setDebug(true);
 	this.board = board;
 	this.row = row;
 	this.col = col;
 	this.type = type;
 	this.rot = 0;
-	this.bitmap = shapeBitmaps[this.type];
-}
+	this.bitmap = Tetris.shapeBitmaps[this.type];
+};
 
-Shape.prototype = {
+Tetris.Shape.prototype = {
 	empty: ' ',
 	emptyAt: function(row, col) {
 		return this.bitmap[row][col] == this.empty;
@@ -447,23 +449,23 @@ Shape.prototype = {
 	}
 };
 
-function NextShapeDisplay(div) {
+Tetris.NextShapeDisplay = function(div) {
 	this.div = div;
 	this.calcSize();
 	this.createGrid();
-}
+};
 
-NextShapeDisplay.prototype = {
+Tetris.NextShapeDisplay.prototype = {
 	calcSize: function() {
 		this.width = 0;
 		this.height = 0;
-		for (var type = 0; type < shapeBitmaps.length; type++) {
-			if (shapeBitmaps[type].length > this.height) {
-				this.height = shapeBitmaps[type].length;
+		for (var type = 0; type < Tetris.shapeBitmaps.length; type++) {
+			if (Tetris.shapeBitmaps[type].length > this.height) {
+				this.height = Tetris.shapeBitmaps[type].length;
 			}
-			for (var row = 0; row < shapeBitmaps[type].length; row++) {
-				if (shapeBitmaps[type][row].length > this.width) {
-					this.width = shapeBitmaps[type][row].length;
+			for (var row = 0; row < Tetris.shapeBitmaps[type].length; row++) {
+				if (Tetris.shapeBitmaps[type][row].length > this.width) {
+					this.width = Tetris.shapeBitmaps[type][row].length;
 				}
 			}
 		}
@@ -484,7 +486,7 @@ NextShapeDisplay.prototype = {
 	},
 	display: function(type) {
 		this.clear();
-		this.currentShape = new Shape(this, 0, 0, type);
+		this.currentShape = new Tetris.Shape(this, 0, 0, type);
 		this.currentShape.show();
 	},
 	isEmpty: function(row, col) {
@@ -498,7 +500,7 @@ NextShapeDisplay.prototype = {
 	},
 	// TODO: Factor out remaining methods into superclass
 	setShape: function(row, col, type) {
-		setClass(this.table.rows[row].cells[col], shapeClasses[type]);
+		setClass(this.table.rows[row].cells[col], Tetris.shapeClasses[type]);
 	},
 	setEmpty: function(row, col) {
 		setClass(this.table.rows[row].cells[col], 'empty');
@@ -516,7 +518,7 @@ NextShapeDisplay.prototype = {
 	}
 };
 
-shapeBitmaps = [
+Tetris.shapeBitmaps = [
                 	[
                 	 'XX',
                 	 'XX',
@@ -554,4 +556,4 @@ shapeBitmaps = [
                 	]
                 ];
 
-shapeClasses = [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ];
+Tetris.shapeClasses = [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ];
