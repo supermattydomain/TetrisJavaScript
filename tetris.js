@@ -4,8 +4,7 @@ var Tetris = {
 };
 
 Tetris.TetrisBoard = function(width, height, div, input) {
-	this.setDebug(true);
-	// this.debugLog("TetrisBoard init");
+	// debug("TetrisBoard init");
 	this.width = width;
 	this.height = height;
 	this.div = div;
@@ -13,21 +12,19 @@ Tetris.TetrisBoard = function(width, height, div, input) {
 	this.nextType = this.randomShapeType();
 	this.createGrid();
 	this.initEvents();
-	// this.debugLog("TetrisBoard end init");
+	// debug("TetrisBoard end init");
 };
 
 Tetris.TetrisBoard.prototype = {
 	initRow : function(rowElt) {
-		setClass(rowElt, 'board');
 		for ( var col = 0; col < this.width; col++) {
 			var cellElt = rowElt.insertCell(-1);
-			setClass(cellElt, 'empty');
+			cellElt.className = 'empty';
 			// cellElt.appendChild(dctn(' '));
 		}
 	},
 	createGrid : function() {
-		this.table = dce('table');
-		setClass(this.table, 'board');
+		this.table = document.createElement('table');
 		this.div.appendChild(this.table);
 		for (var row = 0; row < this.height; row++) {
 			var rowElt = this.table.insertRow(-1);
@@ -41,10 +38,10 @@ Tetris.TetrisBoard.prototype = {
 		return this.table.rows.length;
 	},
 	isEmpty: function(row, col) {
-		return 'empty' == this.table.rows[row].cells[col].className;
+		return $(this.table.rows[row].cells[col]).hasClassName('empty');
 	},
 	setShape: function(row, col, type) {
-		setClass(this.table.rows[row].cells[col], Tetris.shapeClasses[type]);
+		this.table.rows[row].cells[col].className = Tetris.shapeClasses[type];
 	},
 	randomShapeType: function() {
 		// XXX: For testing:
@@ -68,13 +65,13 @@ Tetris.TetrisBoard.prototype = {
 	},
 	tick: function() {
 		if (this.currentShape) {
-			// this.debugLog('Current shape falling');
+			// debug('Current shape falling');
 			this.currentShape.fall();
 			return true;
 		} else {
-			// this.debugLog('Creating new shape');
+			// debug('Creating new shape');
 			var ret = this.createShape();
-			// this.debugLog('Created new shape');
+			// debug('Created new shape');
 			return ret;
 		}
 	},
@@ -87,7 +84,7 @@ Tetris.TetrisBoard.prototype = {
 		return true;
 	},
 	setEmpty: function(row, col) {
-		setClass(this.table.rows[row].cells[col], 'empty');
+		this.table.rows[row].cells[col].className = 'empty';
 	},
 	setRowEmpty: function(row) {
 		for (var col = 0; col < this.getWidth(); col++) {
@@ -104,7 +101,7 @@ Tetris.TetrisBoard.prototype = {
 		for (var col = 0; col < this.getWidth(); col++) {
 			var srcCell = this.table.rows[srcRow].cells[col];
 			var dstCell = this.table.rows[dstRow].cells[col];
-			setClass(dstCell, srcCell.className);
+			dstCell.className = srcCell.className;
 		}
 	},
 	insertBlankRow : function() {
@@ -112,7 +109,7 @@ Tetris.TetrisBoard.prototype = {
 		this.initRow(rowElt);
 	},
 	zapRowPuff: function(rowIndex) {
-		// this.debugLog('Zap row ' + rowIndex);
+		// debug('Zap row ' + rowIndex);
 		var rowElt = this.table.rows[rowIndex];
 		var tthis = this;
 		Effect.Puff(rowElt, {
@@ -127,7 +124,7 @@ Tetris.TetrisBoard.prototype = {
 		this.insertBlankRow();
 	},
 	zapFilledRows: function() {
-		// this.debugLog('zapFilledRows');
+		// debug('zapFilledRows');
 		/*
 		// FIXME: if row deletion occurs under our feet,
 		// decrementing the row index unconditionally
@@ -200,12 +197,12 @@ Tetris.TetrisBoard.prototype = {
 			this.drop();
 			break;
 		case Event.KEY_RETURN:
-			showLog("Keypress: '" + event.keyCode + "'");
+			debug("Keypress: '" + event.keyCode + "'");
 			break;
 		case Event.KEY_TAB:
 		case Event.KEY_ESC:
 		default:
-			// showLog("Keypress: '" + event.keyCode + "'");
+			// debug("Keypress: '" + event.keyCode + "'");
 			return;
 		}
 		Event.stop(event);
@@ -213,7 +210,6 @@ Tetris.TetrisBoard.prototype = {
 };
 
 Tetris.Shape = function(board, row, col, type) {
-	this.setDebug(true);
 	this.board = board;
 	this.row = row;
 	this.col = col;
@@ -240,12 +236,12 @@ Tetris.Shape.prototype = {
 		}
 	},
 	show: function() {
-		// this.debugLog('Show shape');
+		// debug('Show shape');
 		for (var r = 0; r < this.bitmap.length; r++) {
 			for (var c = 0; c < this.bitmap[0].length; c++) {
 				if (this.filledAt(r, c)) {
 					if (!this.board.isEmpty(this.row + r, this.col + c)) {
-						// this.debugLog('Shape blocked in show at ' + this.row + ' + ' + r + ', ' + this.col + ' + ' + c);
+						// debug('Shape blocked in show at ' + this.row + ' + ' + r + ', ' + this.col + ' + ' + c);
 						return false; // blocked
 					}
 					this.board.setShape(this.row + r, this.col + c, this.type);
@@ -255,7 +251,7 @@ Tetris.Shape.prototype = {
 		return true;
 	},
 	rotate : function(clockwise) {
-		debugLog('Rotate');
+		// debug('Rotate');
 		var newRow;
 		var newCol;
 		var oldCol;
@@ -316,15 +312,15 @@ Tetris.Shape.prototype = {
 					continue; // This square empty in this shape
 				}
 				if (this.row + row < 0 || this.row + row >= this.board.getHeight()) {
-					// this.debugLog('Blocked by top/bottom of board');
+					// debug('Blocked by top/bottom of board');
 					return true; // blocked by top or bottom edge of board
 				}
 				if (this.col + col < 0 || this.col + col >= this.board.getWidth()) {
-					// this.debugLog('Blocked by sides of board');
+					// debug('Blocked by sides of board');
 					return true; // blocked by left or right edge of board
 				}
 				if (!this.board.isEmpty(this.row + row, this.col + col)) {
-					// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
+					// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
 					return true; // blocked by existing square
 				}
 			}
@@ -332,7 +328,7 @@ Tetris.Shape.prototype = {
 		return false;
 	},
 	blockedDown: function() {
-		// this.debugLog('blockedDown');
+		// debug('blockedDown');
 		var row;
 		var col;
 		for (col = 0; col < this.bitmap[0].length; col++) {
@@ -343,23 +339,23 @@ Tetris.Shape.prototype = {
 				}
 			}
 			if (row < 0) {
-				// this.debugLog('Column ' + col + ' is empty');
+				// debug('Column ' + col + ' is empty');
 				continue; // empty column
 			}
 			if (this.row + row + 1 >= this.board.getHeight()) {
-				// this.debugLog('Blocked by bottom of board');
+				// debug('Blocked by bottom of board');
 				return true; // blocked by bottom of board
 			}
 			if (!this.board.isEmpty(this.row + row + 1, this.col + col)) {
-				// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' + 1 = ' + (this.row + row + 1) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
+				// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' + 1 = ' + (this.row + row + 1) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
 				return true; // blocked by existing square
 			}
 		}
-		// this.debugLog('Not blocked');
+		// debug('Not blocked');
 		return false;
 	},
 	blockedRight: function() {
-		// this.debugLog('blockedRight');
+		// debug('blockedRight');
 		var row;
 		var col;
 		for (row = 0; row < this.bitmap.length; row++) {
@@ -370,23 +366,23 @@ Tetris.Shape.prototype = {
 				}
 			}
 			if (col < 0) {
-				// this.debugLog('Row ' + row + ' is empty');
+				// debug('Row ' + row + ' is empty');
 				continue; // empty row
 			}
 			if (this.col + col + 1 >= this.board.getWidth()) {
-				// this.debugLog('Blocked by right of board');
+				// debug('Blocked by right of board');
 				return true; // blocked by right of board
 			}
 			if (!this.board.isEmpty(this.row + row, this.col + col + 1)) {
-				// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' + 1 = ' + (this.col + col + 1));
+				// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' + 1 = ' + (this.col + col + 1));
 				return true; // blocked by existing square
 			}
 		}
-		// this.debugLog('Not blocked');
+		// debug('Not blocked');
 		return false;
 	},
 	blockedLeft: function() {
-		// this.debugLog('blockedLeft');
+		// debug('blockedLeft');
 		var row;
 		var col;
 		for (row = 0; row < this.bitmap.length; row++) {
@@ -397,19 +393,19 @@ Tetris.Shape.prototype = {
 				}
 			}
 			if (col >= this.bitmap[row].length) {
-				// this.debugLog('Row ' + row + ' is empty');
+				// debug('Row ' + row + ' is empty');
 				continue; // empty row
 			}
 			if (this.col + col - 1 < 0) {
-				// this.debugLog('Blocked by left of board');
+				// debug('Blocked by left of board');
 				return true; // blocked by left of board
 			}
 			if (!this.board.isEmpty(this.row + row, this.col + col - 1)) {
-				// this.debugLog('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' - 1 = ' + (this.col + col - 1));
+				// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' - 1 = ' + (this.col + col - 1));
 				return true; // blocked by existing square
 			}
 		}
-		// this.debugLog('Not blocked');
+		// debug('Not blocked');
 		return false;
 	},
 	fall: function() {
@@ -471,15 +467,13 @@ Tetris.NextShapeDisplay.prototype = {
 		}
 	},
 	createGrid: function() {
-		this.table = dce('table');
-		setClass(this.table, 'board');
+		this.table = document.createElement('table');
 		this.div.appendChild(this.table);
 		for (var row = 0; row < this.height; row++) {
 			var rowElt = this.table.insertRow(-1);
-			setClass(rowElt, 'board');
 			for (var col = 0; col < this.width; col++) {
 				var cellElt = rowElt.insertCell(-1);
-				setClass(cellElt, 'empty');
+				cellElt.className = 'empty';
 				// cellElt.appendChild(dctn(' '));
 			}
 		}
@@ -500,10 +494,10 @@ Tetris.NextShapeDisplay.prototype = {
 	},
 	// TODO: Factor out remaining methods into superclass
 	setShape: function(row, col, type) {
-		setClass(this.table.rows[row].cells[col], Tetris.shapeClasses[type]);
+		this.table.rows[row].cells[col].className = Tetris.shapeClasses[type];
 	},
 	setEmpty: function(row, col) {
-		setClass(this.table.rows[row].cells[col], 'empty');
+		this.table.rows[row].cells[col].className = 'empty';
 	},
 	setRowEmpty: function(row) {
 		for (var col = 0; col < this.getWidth(); col++) {
