@@ -1,5 +1,5 @@
-var shapeBitmaps = new Array(7);
-var shapeClasses = new Array(shapeBitmaps.length);
+var shapeBitmaps;
+var shapeClasses;
 
 function TetrisBoard(width, height, div, input) {
 	this.setDebug(true);
@@ -111,28 +111,14 @@ TetrisBoard.prototype = {
 	},
 	zapRowPuff: function(rowIndex) {
 		// this.debugLog('Zap row ' + rowIndex);
+		var rowElt = this.table.rows[rowIndex];
 		var tthis = this;
-		for (var col = 0; col < this.getWidth(); col++) {
-			this.setEmpty(rowIndex, col);
-			var cell = this.table.rows[rowIndex].cells[col];
-			var elt = dce('div');
-			cell.appendChild(elt);
-			setClass(elt, 'filledRow');
-			Effect.Puff(elt, { duration : 0.5 });
-		}
-		/*
-		Effect.Puff(elt, {
+		Effect.Puff(rowElt, {
 			afterFinish : function() {
 				tthis.table.deleteRow(rowIndex);
 				tthis.insertBlankRow();
 			}
 		});
-		*/
-		// TODO: continue the below steps, and what the caller currently does upon return from here,
-		// in a timer function set to run after the animation is finished
-		tthis.table.deleteRow(rowIndex);
-		tthis.insertBlankRow();
-		zapFilledRows();
 	},
 	zapRowDelete: function(rowIndex) {
 		this.table.deleteRow(rowIndex);
@@ -140,51 +126,51 @@ TetrisBoard.prototype = {
 	},
 	zapFilledRows: function() {
 		// this.debugLog('zapFilledRows');
-		var puff = false;
+		/*
+		// FIXME: if row deletion occurs under our feet,
+		// decrementing the row index unconditionally
+		// will cause us to miss zappable rows.
+		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; rowIndex--) {
+			if (this.isRowFilled(rowIndex)) {
+				this.zapRowPuff(rowIndex);
+			}
+		}
+		*/
 		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
 			if (this.isRowFilled(rowIndex)) {
-				if (puff) {
-					this.zapRowPuff(rowIndex);
-					return; // Work continues in timer after animation complete
-				} else {
-					this.zapRowDelete(rowIndex);
-					// continue to examine same row index, which is now new row
-				}
+				this.zapRowDelete(rowIndex);
+				// continue to examine same row index, which is now new row
 			} else {
 				rowIndex--;
 			}
 		}
 	},
 	drop: function() {
-		// this.debugLog('Drop');
 		if (!this.currentShape) {
 			this.createShape();
+			return; // Don't drop a newly-created shape
 		}
 		this.currentShape.drop();
 	},
 	moveLeft: function() {
-		// this.debugLog('Left');
 		if (!this.currentShape) {
 			this.createShape();
 		}
 		this.currentShape.moveLeft();
 	},
 	moveRight: function() {
-		// this.debugLog('Right');
 		if (!this.currentShape) {
 			this.createShape();
 		}
 		this.currentShape.moveRight();
 	},
 	fall: function() {
-		// this.debugLog('Fall');
 		if (!this.currentShape) {
 			this.createShape();
 		}
 		this.currentShape.fall();
 	},
 	rotate: function(clockwise) {
-		// this.debugLog('Rotate ' + (clockwise ? "" : "counter-") + 'clockwise');
 		if (!this.currentShape) {
 			this.createShape();
 		}
@@ -194,40 +180,33 @@ TetrisBoard.prototype = {
 		Event.observe(this.input, 'keydown', this.onKeyPress.bindAsEventListener(this));
 		this.input.focus();
 	},
-	onKeyPress : function(evt) {
-		// this.debugLog('Keypress ' + evt.keyCode);
-		var key = (evt) ? evt.which : event.keyCode;
-		// var s = String.fromCharCode(key);
-		switch (evt.keyCode) {
-		case 37:
+	onKeyPress : function(event) {
+		switch (event.keyCode) {
 		case Event.KEY_LEFT:
 			this.moveLeft();
 			break;
-		case 39:
 		case Event.KEY_RIGHT:
 			this.moveRight();
 			break;
-		case 38:
 		case Event.KEY_UP:
 			this.rotate(false);
 			break;
-		case 40:
 		case Event.KEY_DOWN:
 			this.fall();
 			break;
-		case Event.KEY_SPACE:
 		case 32: // FIXME: Literal ' ' doesn't work
-		case ' ':
 			this.drop();
 			break;
-		case null:
-		case undefined:
-		default:
-			// showLog("Unknown keycode: " + evt.keyCode);
+		case Event.KEY_RETURN:
+			showLog("Keypress: '" + event.keyCode + "'");
 			break;
+		case Event.KEY_TAB:
+		case Event.KEY_ESC:
+		default:
+			// showLog("Keypress: '" + event.keyCode + "'");
+			return;
 		}
-		Event.stop(evt);
-		return false;
+		Event.stop(event);
 	}
 };
 
@@ -243,10 +222,16 @@ function Shape(board, row, col, type) {
 
 Shape.prototype = {
 	empty: ' ',
+	emptyAt: function(row, col) {
+		return this.bitmap[row][col] == this.empty;
+	},
+	filledAt: function(row, col) {
+		return !this.emptyAt(row, col);
+	},
 	hide : function() {
 		for ( var r = 0; r < this.bitmap.length; r++) {
 			for ( var c = 0; c < this.bitmap[0].length; c++) {
-				if (this.bitmap[r][c] != this.empty) {
+				if (this.filledAt(r, c)) {
 					this.board.setEmpty(this.row + r, this.col + c);
 				}
 			}
@@ -256,7 +241,7 @@ Shape.prototype = {
 		// this.debugLog('Show shape');
 		for (var r = 0; r < this.bitmap.length; r++) {
 			for (var c = 0; c < this.bitmap[0].length; c++) {
-				if (this.bitmap[r][c] != this.empty) {
+				if (this.filledAt(r, c)) {
 					if (!this.board.isEmpty(this.row + r, this.col + c)) {
 						// this.debugLog('Shape blocked in show at ' + this.row + ' + ' + r + ', ' + this.col + ' + ' + c);
 						return false; // blocked
@@ -268,7 +253,7 @@ Shape.prototype = {
 		return true;
 	},
 	rotate : function(clockwise) {
-		// this.debugLog('Rotate');
+		debugLog('Rotate');
 		var newRow;
 		var newCol;
 		var oldCol;
@@ -313,7 +298,6 @@ Shape.prototype = {
 				}
 			}
 		}
-		// TODO: blocked checking for rotated shape bitmap
 		this.hide();
 		if (this.blockedRotate(newBitmap)) {
 			this.show();
@@ -532,58 +516,42 @@ NextShapeDisplay.prototype = {
 	}
 };
 
-shapeBitmaps[0] =
-	[
-	 'XX',
-	 'XX',
-	 ];
-shapeClasses[0] = 'blue';
+shapeBitmaps = [
+                	[
+                	 'XX',
+                	 'XX',
+                	 ],
+                	[
+                	 '  X  ',
+                	 '  X  ',
+                	 '  X  ',
+                	 '  X  '
+                	],
+                	[
+                	 ' X',
+                	 'XX',
+                	 'X '
+                	],
+                	[
+                	 'X ',
+                	 'XX',
+                	 ' X'
+                	],
+                	[
+                	 ' X ',
+                	 ' XX',
+                	 ' X '
+                	],
+                	[
+                	 ' X ',
+                	 ' X ',
+                	 ' XX'
+                	],
+                	[
+                	 ' X ',
+                	 ' X ',
+                	 'XX '
+                	]
+                ];
 
-shapeBitmaps[1] =
-	[
-	 '  X  ',
-	 '  X  ',
-	 '  X  ',
-	 '  X  '
-	];
-shapeClasses[1] = 'red';
-
-shapeBitmaps[2] =
-	[
-	 ' X',
-	 'XX',
-	 'X '
-	];
-shapeClasses[2] = 'yellow';
-
-shapeBitmaps[3] =
-	[
-	 'X ',
-	 'XX',
-	 ' X'
-	];
-shapeClasses[3] = 'magenta';
-
-shapeBitmaps[4] =
-	[
-	 ' X ',
-	 ' XX',
-	 ' X '
-	];
-shapeClasses[4] = 'green';
-
-shapeBitmaps[5] =
-	[
-	 ' X ',
-	 ' X ',
-	 ' XX'
-	];
-shapeClasses[5] = 'brightyellow';
-
-shapeBitmaps[6] =
-	[
-	 ' X ',
-	 ' X ',
-	 'XX '
-	];
-shapeClasses[6] = 'brightblue';
+shapeClasses = [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ];
