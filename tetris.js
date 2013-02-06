@@ -4,7 +4,6 @@ var Tetris = {
 };
 
 Tetris.TetrisBoard = function(width, height, div, input) {
-	// debug("TetrisBoard init");
 	this.width = width;
 	this.height = height;
 	this.div = div;
@@ -12,7 +11,6 @@ Tetris.TetrisBoard = function(width, height, div, input) {
 	this.nextType = this.randomShapeType();
 	this.createGrid();
 	this.initEvents();
-	// debug("TetrisBoard end init");
 };
 
 Tetris.TetrisBoard.prototype = {
@@ -65,13 +63,10 @@ Tetris.TetrisBoard.prototype = {
 	},
 	tick: function() {
 		if (this.currentShape) {
-			// debug('Current shape falling');
 			this.currentShape.fall();
 			return true;
 		} else {
-			// debug('Creating new shape');
 			var ret = this.createShape();
-			// debug('Created new shape');
 			return ret;
 		}
 	},
@@ -109,7 +104,6 @@ Tetris.TetrisBoard.prototype = {
 		this.initRow(rowElt);
 	},
 	zapRowPuff: function(rowIndex) {
-		// debug('Zap row ' + rowIndex);
 		var rowElt = this.table.rows[rowIndex];
 		var tthis = this;
 		Effect.Puff(rowElt, {
@@ -124,7 +118,6 @@ Tetris.TetrisBoard.prototype = {
 		this.insertBlankRow();
 	},
 	zapFilledRows: function() {
-		// debug('zapFilledRows');
 		/*
 		// FIXME: if row deletion occurs under our feet,
 		// decrementing the row index unconditionally
@@ -236,12 +229,10 @@ Tetris.Shape.prototype = {
 		}
 	},
 	show: function() {
-		// debug('Show shape');
 		for (var r = 0; r < this.bitmap.length; r++) {
 			for (var c = 0; c < this.bitmap[0].length; c++) {
 				if (this.filledAt(r, c)) {
 					if (!this.board.isEmpty(this.row + r, this.col + c)) {
-						// debug('Shape blocked in show at ' + this.row + ' + ' + r + ', ' + this.col + ' + ' + c);
 						return false; // blocked
 					}
 					this.board.setShape(this.row + r, this.col + c, this.type);
@@ -251,7 +242,6 @@ Tetris.Shape.prototype = {
 		return true;
 	},
 	rotate : function(clockwise) {
-		// debug('Rotate');
 		var newRow;
 		var newCol;
 		var oldCol;
@@ -312,15 +302,12 @@ Tetris.Shape.prototype = {
 					continue; // This square empty in this shape
 				}
 				if (this.row + row < 0 || this.row + row >= this.board.getHeight()) {
-					// debug('Blocked by top/bottom of board');
 					return true; // blocked by top or bottom edge of board
 				}
 				if (this.col + col < 0 || this.col + col >= this.board.getWidth()) {
-					// debug('Blocked by sides of board');
 					return true; // blocked by left or right edge of board
 				}
 				if (!this.board.isEmpty(this.row + row, this.col + col)) {
-					// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
 					return true; // blocked by existing square
 				}
 			}
@@ -328,7 +315,6 @@ Tetris.Shape.prototype = {
 		return false;
 	},
 	blockedDown: function() {
-		// debug('blockedDown');
 		var row;
 		var col;
 		for (col = 0; col < this.bitmap[0].length; col++) {
@@ -339,23 +325,18 @@ Tetris.Shape.prototype = {
 				}
 			}
 			if (row < 0) {
-				// debug('Column ' + col + ' is empty');
 				continue; // empty column
 			}
 			if (this.row + row + 1 >= this.board.getHeight()) {
-				// debug('Blocked by bottom of board');
 				return true; // blocked by bottom of board
 			}
 			if (!this.board.isEmpty(this.row + row + 1, this.col + col)) {
-				// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' + 1 = ' + (this.row + row + 1) + ', ' + this.col + ' + ' + col + ' = ' + (this.col + col));
 				return true; // blocked by existing square
 			}
 		}
-		// debug('Not blocked');
 		return false;
 	},
 	blockedRight: function() {
-		// debug('blockedRight');
 		var row;
 		var col;
 		for (row = 0; row < this.bitmap.length; row++) {
@@ -366,23 +347,18 @@ Tetris.Shape.prototype = {
 				}
 			}
 			if (col < 0) {
-				// debug('Row ' + row + ' is empty');
 				continue; // empty row
 			}
 			if (this.col + col + 1 >= this.board.getWidth()) {
-				// debug('Blocked by right of board');
 				return true; // blocked by right of board
 			}
 			if (!this.board.isEmpty(this.row + row, this.col + col + 1)) {
-				// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' + 1 = ' + (this.col + col + 1));
 				return true; // blocked by existing square
 			}
 		}
-		// debug('Not blocked');
 		return false;
 	},
 	blockedLeft: function() {
-		// debug('blockedLeft');
 		var row;
 		var col;
 		for (row = 0; row < this.bitmap.length; row++) {
@@ -393,19 +369,15 @@ Tetris.Shape.prototype = {
 				}
 			}
 			if (col >= this.bitmap[row].length) {
-				// debug('Row ' + row + ' is empty');
 				continue; // empty row
 			}
 			if (this.col + col - 1 < 0) {
-				// debug('Blocked by left of board');
 				return true; // blocked by left of board
 			}
 			if (!this.board.isEmpty(this.row + row, this.col + col - 1)) {
-				// debug('Blocked by existing square at ' + this.row + ' + ' + row + ' = ' + (this.row + row) + ', ' + this.col + ' + ' + col + ' - 1 = ' + (this.col + col - 1));
 				return true; // blocked by existing square
 			}
 		}
-		// debug('Not blocked');
 		return false;
 	},
 	fall: function() {
