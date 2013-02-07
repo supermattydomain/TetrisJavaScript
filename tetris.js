@@ -1,6 +1,16 @@
+/**
+ * Generate a random integer between (and including) the two given numbers.
+ * @param min The smallest value that should ever be returned. Must be >=0.
+ * @param max The largest value that should ever be returned. Must be >min.
+ * @returns A pseudo-random positive integer in the range [min..max]
+ */
+function randomBetween(min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 var Tetris = {
-		shapeBitmaps: undefined,
-		shapeClasses: undefined
+	shapeBitmaps: undefined,
+	shapeClasses: undefined
 };
 
 Tetris.TetrisBoard = function(width, height, div, input) {
@@ -16,44 +26,39 @@ Tetris.TetrisBoard = function(width, height, div, input) {
 Tetris.TetrisBoard.prototype = {
 	initRow : function(rowElt) {
 		for ( var col = 0; col < this.width; col++) {
-			var cellElt = rowElt.insertCell(-1);
-			cellElt.className = 'empty';
-			// cellElt.appendChild(dctn(' '));
+			var cellElt = $('<td>');
+			rowElt.append(cellElt);
+			cellElt.addClass('empty');
 		}
 	},
 	createGrid : function() {
-		this.table = document.createElement('table');
-		this.div.appendChild(this.table);
+		this.table = $('<table>');
+		this.div.append(this.table);
 		for (var row = 0; row < this.height; row++) {
-			var rowElt = this.table.insertRow(-1);
+			var rowElt = $('<tr>');
+			this.table.append(rowElt);
 			this.initRow(rowElt);
 		}
 	},
+	cellAt: function(row, col) {
+		return $(this.table[0].rows[row].cells[col]);
+	},
 	getWidth: function() {
-		return this.table.rows[0].cells.length;
+		return this.width;
 	},
 	getHeight: function() {
-		return this.table.rows.length;
+		return this.height;
 	},
 	isEmpty: function(row, col) {
-		return $(this.table.rows[row].cells[col]).hasClassName('empty');
+		return this.cellAt(row, col).hasClass('empty');
 	},
 	setShape: function(row, col, type) {
-		this.table.rows[row].cells[col].className = Tetris.shapeClasses[type];
+		this.cellAt(row, col).attr('class', Tetris.shapeClasses[type]);
 	},
 	randomShapeType: function() {
 		// XXX: For testing:
 		// return 0;
-		var type = Math.round(Math.random() * Tetris.shapeBitmaps.length - 0.5);
-		// FIXME: Is Math.random strictly *between* 0 and 1?
-		// FIXME: Does Math.round round halves up or down or towards zero or what?
-		if (type < 0) {
-			type = 0;
-		}
-		if (type >= Tetris.shapeBitmaps.length) {
-			type = Tetris.shapeBitmaps.length - 1;
-		}
-		return type;
+		return randomBetween(0, Tetris.shapeBitmaps.length - 1);
 	},
 	createShape: function() {
 		var type = this.nextType;
@@ -79,7 +84,7 @@ Tetris.TetrisBoard.prototype = {
 		return true;
 	},
 	setEmpty: function(row, col) {
-		this.table.rows[row].cells[col].className = 'empty';
+		this.cellAt(row, col).attr('class', 'empty');
 	},
 	setRowEmpty: function(row) {
 		for (var col = 0; col < this.getWidth(); col++) {
@@ -92,42 +97,16 @@ Tetris.TetrisBoard.prototype = {
 			this.setRowEmpty(row);
 		}
 	},
-	copyRow: function(srcRow, dstRow) {
-		for (var col = 0; col < this.getWidth(); col++) {
-			var srcCell = this.table.rows[srcRow].cells[col];
-			var dstCell = this.table.rows[dstRow].cells[col];
-			dstCell.className = srcCell.className;
-		}
-	},
 	insertBlankRow : function() {
-		rowElt = this.table.insertRow(0);
+		var rowElt = $('<tr>');
 		this.initRow(rowElt);
-	},
-	zapRowPuff: function(rowIndex) {
-		var rowElt = this.table.rows[rowIndex];
-		var tthis = this;
-		Effect.Puff(rowElt, {
-			afterFinish : function() {
-				tthis.table.deleteRow(rowIndex);
-				tthis.insertBlankRow();
-			}
-		});
+		this.table.prepend(rowElt);
 	},
 	zapRowDelete: function(rowIndex) {
-		this.table.deleteRow(rowIndex);
+		$(this.table[0].rows[rowIndex]).remove();
 		this.insertBlankRow();
 	},
 	zapFilledRows: function() {
-		/*
-		// FIXME: if row deletion occurs under our feet,
-		// decrementing the row index unconditionally
-		// will cause us to miss zappable rows.
-		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; rowIndex--) {
-			if (this.isRowFilled(rowIndex)) {
-				this.zapRowPuff(rowIndex);
-			}
-		}
-		*/
 		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
 			if (this.isRowFilled(rowIndex)) {
 				this.zapRowDelete(rowIndex);
@@ -169,36 +148,20 @@ Tetris.TetrisBoard.prototype = {
 		this.currentShape.rotate(clockwise);
 	},
 	initEvents: function() {
-		Event.observe(this.input, 'keydown', this.onKeyPress.bindAsEventListener(this));
+		var handlers = {
+			32: this.drop,
+			37: this.moveLeft,
+			38: this.rotate,
+			39: this.moveRight,
+			40: this.fall
+		}, tthis = this;
+		this.input.on('keypress', function(event) {
+			if ((event.which || event.keyCode) in handlers) {
+				return handlers[event.which || event.keyCode].apply(tthis);
+			}
+			console.log("Unhandled keypress", event);
+		});
 		this.input.focus();
-	},
-	onKeyPress : function(event) {
-		switch (event.keyCode) {
-		case Event.KEY_LEFT:
-			this.moveLeft();
-			break;
-		case Event.KEY_RIGHT:
-			this.moveRight();
-			break;
-		case Event.KEY_UP:
-			this.rotate(false);
-			break;
-		case Event.KEY_DOWN:
-			this.fall();
-			break;
-		case 32: // FIXME: Literal ' ' doesn't work
-			this.drop();
-			break;
-		case Event.KEY_RETURN:
-			debug("Keypress: '" + event.keyCode + "'");
-			break;
-		case Event.KEY_TAB:
-		case Event.KEY_ESC:
-		default:
-			// debug("Keypress: '" + event.keyCode + "'");
-			return;
-		}
-		Event.stop(event);
 	}
 };
 
@@ -439,14 +402,15 @@ Tetris.NextShapeDisplay.prototype = {
 		}
 	},
 	createGrid: function() {
-		this.table = document.createElement('table');
-		this.div.appendChild(this.table);
+		this.table = $('<table>');
+		this.div.append(this.table);
 		for (var row = 0; row < this.height; row++) {
-			var rowElt = this.table.insertRow(-1);
+			var rowElt = $('<tr>');
+			this.table.append(rowElt);
 			for (var col = 0; col < this.width; col++) {
-				var cellElt = rowElt.insertCell(-1);
-				cellElt.className = 'empty';
-				// cellElt.appendChild(dctn(' '));
+				var cellElt = $('<td>');
+				cellElt.addClass('empty');
+				rowElt.append(cellElt);
 			}
 		}
 	},
@@ -466,10 +430,13 @@ Tetris.NextShapeDisplay.prototype = {
 	},
 	// TODO: Factor out remaining methods into superclass
 	setShape: function(row, col, type) {
-		this.table.rows[row].cells[col].className = Tetris.shapeClasses[type];
+		this.cellAt(row, col).attr('class', Tetris.shapeClasses[type]);
+	},
+	cellAt: function(row, col) {
+		return $(this.table[0].rows[row].cells[col]);
 	},
 	setEmpty: function(row, col) {
-		this.table.rows[row].cells[col].className = 'empty';
+		this.cellAt(row, col).attr('class', 'empty');
 	},
 	setRowEmpty: function(row) {
 		for (var col = 0; col < this.getWidth(); col++) {

@@ -4,8 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Tetris</title>
 <link rel="stylesheet" type="text/css" href="styles.css">
-<script language="javascript" type="text/javascript" src="../lib/prototype/dist/prototype.js"></script>
-<script language="javascript" type="text/javascript" src="../lib/scriptaculous/src/scriptaculous.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/jquery/dist/jquery.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/JSON-js/json2.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/jsdebug/debug.js"></script>
 <script language="javascript" type="text/javascript" src="tetris.js"></script>
@@ -29,13 +28,13 @@
 <script language="javascript" type="text/javascript"><!--
 var width = 10;
 var height = 20;
-var nextShapeDisplay = new Tetris.NextShapeDisplay($('nextShapeDiv'));
+var nextShapeDisplay = new Tetris.NextShapeDisplay($('#nextShapeDiv'));
 // TODO: Remove ugly textarea.
 // The div doesn't seem able to get keyboard focus,
 // so doesn't receive keyboard events.
-var textarea = $('dummytextarea');
-textarea.readOnly = true;
-var board = new Tetris.TetrisBoard(width, height, $('boardDiv'), textarea);
+var textarea = $('#dummytextarea');
+textarea.prop('readonly', true);
+var board = new Tetris.TetrisBoard(width, height, $('#boardDiv'), textarea);
 
 var interval;
 
@@ -50,13 +49,13 @@ function timerFunc() {
 
 function startRunning(delay) {
 	interval = setInterval("timerFunc()", delay);
-	$('toggleButton').value = 'Pause';
+	$('#toggleButton').val('Pause');
 }
 
 function stopRunning() {
 	clearInterval(interval);
 	interval = undefined;
-	$('toggleButton').value = 'Go';
+	$('#toggleButton').val('Go');
 }
 
 function toggleRunning(delay) {
