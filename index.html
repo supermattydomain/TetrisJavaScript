@@ -13,15 +13,14 @@
 <h1>Tetris</h1>
 
 <div id="displayDiv" class="display">
-<div id="boardDiv" class="board"></div>
+<div id="boardDiv" class="board" tabindex="0"></div>
 <div id="nextShapeDiv" class="nextShape"></div>
 </div>
 
 <div id="controls" class="controls">
 	<form action="" onsubmit="return false;">
 		<input type="button" onclick="board.clear();textarea.focus();return false;" value="Clear">
-		<input type="button" id="toggleButton" onclick="toggleRunning(1000);textarea.focus();return false;" value="Go">
-		<textarea rows="1" cols="1" id="dummytextarea"></textarea>
+		<input type="button" id="toggleButton" onclick="toggleRunning(1000);return false;" value="Go">
 	</form>
 </div>
 
@@ -29,12 +28,7 @@
 var width = 10;
 var height = 20;
 var nextShapeDisplay = new Tetris.NextShapeDisplay($('#nextShapeDiv'));
-// TODO: Remove ugly textarea.
-// The div doesn't seem able to get keyboard focus,
-// so doesn't receive keyboard events.
-var textarea = $('#dummytextarea');
-textarea.prop('readonly', true);
-var board = new Tetris.TetrisBoard(width, height, $('#boardDiv'), textarea);
+var board = new Tetris.TetrisBoard(width, height, $('#boardDiv'));
 
 var interval;
 
@@ -65,6 +59,8 @@ function toggleRunning(delay) {
 		startRunning(delay);
 	}
 }
+
+startRunning(1000);
 
 // --></script>
 

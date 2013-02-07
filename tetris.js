@@ -13,9 +13,8 @@ var Tetris = {
 	shapeClasses: undefined
 };
 
-Tetris.TetrisBoard = function(width, height, div, input) {
+Tetris.TetrisBoard = function(width, height, div) {
 	this.div = div;
-	this.input = input;
 	this.nextType = this.randomShapeType();
 	this.createGrid(width, height);
 	this.initEvents();
@@ -157,11 +156,14 @@ Tetris.TetrisBoard.prototype = {
 			39: function() { this.moveRight(); },
 			40: function() { this.fall(); }
 		}, tthis = this;
-		this.input.focus().on('keypress', function(event) {
+		$(document).on('keydown', function(event) {
 			if ((event.which || event.keyCode) in handlers) {
-				return handlers[event.which || event.keyCode].apply(tthis);
+				handlers[event.which || event.keyCode].apply(tthis);
+				event.preventDefault();
+				return true;
 			}
 			console.log("Unhandled keypress", event);
+			return false;
 		});
 	}
 };
