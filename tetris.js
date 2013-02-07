@@ -8,19 +8,18 @@ function randomBetween(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-var Tetris = {
-	shapeBitmaps: undefined,
-	shapeClasses: undefined
-};
+if (typeof(Tetris) === "undefined") {
+	Tetris = {};
+}
 
-Tetris.TetrisBoard = function(width, height, div) {
+Tetris.Board = function(width, height, div) {
 	this.div = div;
 	this.nextType = this.randomShapeType();
 	this.createGrid(width, height);
 	this.initEvents();
 };
 
-Tetris.TetrisBoard.prototype = {
+$.extend(Tetris.Board.prototype, {
 	initRow: function(rowElt, width) {
 		var col;
 		for (col = 0; col < width; col++) {
@@ -166,7 +165,7 @@ Tetris.TetrisBoard.prototype = {
 			return false;
 		});
 	}
-};
+});
 
 Tetris.Shape = function(board, row, col, type) {
 	this.board = board;
@@ -177,7 +176,7 @@ Tetris.Shape = function(board, row, col, type) {
 	this.bitmap = Tetris.shapeBitmaps[this.type];
 };
 
-Tetris.Shape.prototype = {
+$.extend(Tetris.Shape.prototype, {
 	empty: ' ',
 	getHeight: function() {
 		return this.bitmap.length;
@@ -387,7 +386,7 @@ Tetris.Shape.prototype = {
 			// NOP
 		}
 	}
-};
+});
 
 Tetris.NextShapeDisplay = function(div) {
 	this.div = div;
@@ -395,7 +394,7 @@ Tetris.NextShapeDisplay = function(div) {
 	this.createGrid();
 };
 
-Tetris.NextShapeDisplay.prototype = {
+$.extend(Tetris.NextShapeDisplay.prototype, {
 	calcSize: function() {
 		this.width = 0;
 		this.height = 0;
@@ -460,44 +459,45 @@ Tetris.NextShapeDisplay.prototype = {
 			this.setRowEmpty(row);
 		}
 	}
-};
+});
 
-Tetris.shapeBitmaps = [
-                	[
-                	 'XX',
-                	 'XX',
-                	 ],
-                	[
-                	 '  X  ',
-                	 '  X  ',
-                	 '  X  ',
-                	 '  X  '
-                	],
-                	[
-                	 ' X',
-                	 'XX',
-                	 'X '
-                	],
-                	[
-                	 'X ',
-                	 'XX',
-                	 ' X'
-                	],
-                	[
-                	 ' X ',
-                	 ' XX',
-                	 ' X '
-                	],
-                	[
-                	 ' X ',
-                	 ' X ',
-                	 ' XX'
-                	],
-                	[
-                	 ' X ',
-                	 ' X ',
-                	 'XX '
-                	]
-                ];
-
-Tetris.shapeClasses = [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ];
+$.extend(Tetris, {
+	shapeBitmaps: [
+               	[
+            	 'XX',
+            	 'XX',
+            	 ],
+            	[
+            	 '  X  ',
+            	 '  X  ',
+            	 '  X  ',
+            	 '  X  '
+            	],
+            	[
+            	 ' X',
+            	 'XX',
+            	 'X '
+            	],
+            	[
+            	 'X ',
+            	 'XX',
+            	 ' X'
+            	],
+            	[
+            	 ' X ',
+            	 ' XX',
+            	 ' X '
+            	],
+            	[
+            	 ' X ',
+            	 ' X ',
+            	 ' XX'
+            	],
+            	[
+            	 ' X ',
+            	 ' X ',
+            	 'XX '
+            	]
+            ],
+	shapeClasses: [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ]
+});
