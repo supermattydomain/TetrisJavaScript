@@ -14,40 +14,38 @@ var Tetris = {
 };
 
 Tetris.TetrisBoard = function(width, height, div, input) {
-	this.width = width;
-	this.height = height;
 	this.div = div;
 	this.input = input;
 	this.nextType = this.randomShapeType();
-	this.createGrid();
+	this.createGrid(width, height);
 	this.initEvents();
 };
 
 Tetris.TetrisBoard.prototype = {
-	initRow : function(rowElt) {
-		for ( var col = 0; col < this.width; col++) {
-			var cellElt = $('<td>');
-			rowElt.append(cellElt);
-			cellElt.addClass('empty');
+	initRow: function(rowElt, width) {
+		var col;
+		for (col = 0; col < width; col++) {
+			rowElt.append($('<td>').addClass('empty'));
 		}
 	},
-	createGrid : function() {
+	createGrid : function(width, height) {
+		var row, rowElt;
 		this.table = $('<table>');
 		this.div.append(this.table);
-		for (var row = 0; row < this.height; row++) {
-			var rowElt = $('<tr>');
+		for (row = 0; row < height; row++) {
+			rowElt = $('<tr>');
+			this.initRow(rowElt, width);
 			this.table.append(rowElt);
-			this.initRow(rowElt);
 		}
 	},
 	cellAt: function(row, col) {
 		return $(this.table[0].rows[row].cells[col]);
 	},
 	getWidth: function() {
-		return this.width;
+		return this.table[0].rows[0].cells.length;
 	},
 	getHeight: function() {
-		return this.height;
+		return this.table[0].rows.length;
 	},
 	isEmpty: function(row, col) {
 		return this.cellAt(row, col).hasClass('empty');
@@ -76,7 +74,8 @@ Tetris.TetrisBoard.prototype = {
 		}
 	},
 	isRowFilled: function(row) {
-		for (var col = 0; col < this.getWidth(); col++) {
+		var col;
+		for (col = 0; col < this.getWidth(); col++) {
 			if (this.isEmpty(row, col)) {
 				return false; // gap in this row
 			}
@@ -87,19 +86,21 @@ Tetris.TetrisBoard.prototype = {
 		this.cellAt(row, col).attr('class', 'empty');
 	},
 	setRowEmpty: function(row) {
-		for (var col = 0; col < this.getWidth(); col++) {
+		var col;
+		for (col = 0; col < this.getWidth(); col++) {
 			this.setEmpty(row, col);
 		}
 	},
 	clear: function() {
+		var row;
 		this.currentShape = null;
-		for (var row = 0; row < this.getHeight(); row++) {
+		for (row = 0; row < this.getHeight(); row++) {
 			this.setRowEmpty(row);
 		}
 	},
 	insertBlankRow : function() {
 		var rowElt = $('<tr>');
-		this.initRow(rowElt);
+		this.initRow(rowElt, this.getWidth());
 		this.table.prepend(rowElt);
 	},
 	zapRowDelete: function(rowIndex) {
@@ -107,7 +108,8 @@ Tetris.TetrisBoard.prototype = {
 		this.insertBlankRow();
 	},
 	zapFilledRows: function() {
-		for (var rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
+		var rowIndex;
+		for (rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
 			if (this.isRowFilled(rowIndex)) {
 				this.zapRowDelete(rowIndex);
 				// continue to examine same row index, which is now new row
@@ -149,19 +151,18 @@ Tetris.TetrisBoard.prototype = {
 	},
 	initEvents: function() {
 		var handlers = {
-			32: this.drop,
-			37: this.moveLeft,
-			38: this.rotate,
-			39: this.moveRight,
-			40: this.fall
+			32: function() { this.drop(); },
+			37: function() { this.moveLeft(); },
+			38: function() { this.rotate(false); },
+			39: function() { this.moveRight(); },
+			40: function() { this.fall(); }
 		}, tthis = this;
-		this.input.on('keypress', function(event) {
+		this.input.focus().on('keypress', function(event) {
 			if ((event.which || event.keyCode) in handlers) {
 				return handlers[event.which || event.keyCode].apply(tthis);
 			}
 			console.log("Unhandled keypress", event);
 		});
-		this.input.focus();
 	}
 };
 
@@ -176,15 +177,22 @@ Tetris.Shape = function(board, row, col, type) {
 
 Tetris.Shape.prototype = {
 	empty: ' ',
+	getHeight: function() {
+		return this.bitmap.length;
+	},
+	getWidth: function() {
+		return this.bitmap[0].length;
+	},
 	emptyAt: function(row, col) {
-		return this.bitmap[row][col] == this.empty;
+		return this.bitmap[row][col] === this.empty;
 	},
 	filledAt: function(row, col) {
 		return !this.emptyAt(row, col);
 	},
-	hide : function() {
-		for ( var r = 0; r < this.bitmap.length; r++) {
-			for ( var c = 0; c < this.bitmap[0].length; c++) {
+	hide: function() {
+		var r, c;
+		for (r = 0; r < this.getHeight(); r++) {
+			for (c = 0; c < this.getWidth(); c++) {
 				if (this.filledAt(r, c)) {
 					this.board.setEmpty(this.row + r, this.col + c);
 				}
@@ -192,8 +200,9 @@ Tetris.Shape.prototype = {
 		}
 	},
 	show: function() {
-		for (var r = 0; r < this.bitmap.length; r++) {
-			for (var c = 0; c < this.bitmap[0].length; c++) {
+		var r, c;
+		for (r = 0; r < this.getHeight(); r++) {
+			for (c = 0; c < this.getWidth(); c++) {
 				if (this.filledAt(r, c)) {
 					if (!this.board.isEmpty(this.row + r, this.col + c)) {
 						return false; // blocked
@@ -205,14 +214,11 @@ Tetris.Shape.prototype = {
 		return true;
 	},
 	rotate : function(clockwise) {
-		var newRow;
-		var newCol;
-		var oldCol;
-		var oldRow;
-		var maxSize = Math.max(this.bitmap.length, this.bitmap[0].length);
-		var newBitmap = new Array(maxSize);
-		for (newRow = 0; newRow < newBitmap.length; newRow++) {
-			newBitmap[newRow] = new Array(maxSize);
+		var
+			oldRow, oldCol, newRow, newCol,
+			newBitmap = [];
+		for (newRow = 0; newRow < this.bitmap[0].length; newRow++) {
+			newBitmap[newRow] = [];
 		}
 		if (clockwise) {
 			if (++this.rot > 3) {
@@ -220,11 +226,11 @@ Tetris.Shape.prototype = {
 			}
 			// +row -> -col, newCol = inv(oldRow), oldRow = inv(newCol)
 			// +col -> +row, newRow = oldCol, oldCol = newRow
-			for (newRow = 0; newRow < newBitmap.length; newRow++) {
-				for (newCol = 0; newCol < newBitmap[newRow].length; newCol++) {
+			for (newRow = 0; newRow < this.getWidth(); newRow++) {
+				for (newCol = 0; newCol < this.getHeight(); newCol++) {
 					oldCol = newRow;
 					oldRow = newBitmap[newRow].length - 1 - newCol;
-					if (oldRow < 0 || oldRow >= this.bitmap.length || oldCol >= this.bitmap[oldRow].length) {
+					if (oldRow < 0 || oldRow >= this.getHeight() || oldCol >= this.bitmap[oldRow].length) {
 						newBitmap[newRow][newCol] = this.empty;
 					} else {
 						newBitmap[newRow][newCol] = this.bitmap[oldRow][oldCol];
@@ -237,11 +243,11 @@ Tetris.Shape.prototype = {
 			if (--this.rot < 0) {
 				this.rot = 3;
 			}
-			for (newRow = 0; newRow < newBitmap.length; newRow++) {
-				for (newCol = 0; newCol < newBitmap[newRow].length; newCol++) {
+			for (newRow = 0; newRow < this.getWidth(); newRow++) {
+				for (newCol = 0; newCol < this.getHeight(0); newCol++) {
 					oldCol = newBitmap.length - 1 - newRow;
 					oldRow = newCol;
-					if (oldCol < 0 || oldRow >= this.bitmap.length || oldCol >= this.bitmap[oldRow].length) {
+					if (oldCol < 0 || oldRow >= this.getHeight() || oldCol >= this.bitmap[oldRow].length) {
 						newBitmap[newRow][newCol] = this.empty;
 					} else {
 						newBitmap[newRow][newCol] = this.bitmap[oldRow][oldCol];
@@ -259,8 +265,9 @@ Tetris.Shape.prototype = {
 		return true;
 	},
 	blockedRotate: function(newBitmap) {
-		for (var row = 0; row < newBitmap.length; row ++) {
-			for (var col = 0; col < newBitmap[row].length; col++) {
+		var row, col;
+		for (row = 0; row < newBitmap.length; row ++) {
+			for (col = 0; col < newBitmap[row].length; col++) {
 				if (newBitmap[row][col] == this.empty) {
 					continue; // This square empty in this shape
 				}
@@ -280,9 +287,9 @@ Tetris.Shape.prototype = {
 	blockedDown: function() {
 		var row;
 		var col;
-		for (col = 0; col < this.bitmap[0].length; col++) {
+		for (col = 0; col < this.getWidth(); col++) {
 			// Find the bottom-most filled square in the shape's bitmap in this column 
-			for (row = this.bitmap.length - 1; row >= 0; row--) {
+			for (row = this.getHeight() - 1; row >= 0; row--) {
 				if (this.bitmap[row][col] != this.empty) {
 					break;
 				}
@@ -302,7 +309,7 @@ Tetris.Shape.prototype = {
 	blockedRight: function() {
 		var row;
 		var col;
-		for (row = 0; row < this.bitmap.length; row++) {
+		for (row = 0; row < this.getHeight(); row++) {
 			// Find the right-most filled square in the shape's bitmap in this row
 			for (col = this.bitmap[row].length - 1; col >= 0; col--) {
 				if (this.bitmap[row][col] != this.empty) {
@@ -324,7 +331,7 @@ Tetris.Shape.prototype = {
 	blockedLeft: function() {
 		var row;
 		var col;
-		for (row = 0; row < this.bitmap.length; row++) {
+		for (row = 0; row < this.getHeight(); row++) {
 			// Find the left-most filled square in the shape's bitmap in this row
 			for (col = 0; col < this.bitmap[row].length; col++) {
 				if (this.bitmap[row][col] != this.empty) {
@@ -402,13 +409,14 @@ Tetris.NextShapeDisplay.prototype = {
 		}
 	},
 	createGrid: function() {
+		var row, col, rowElt, cellElt;
 		this.table = $('<table>');
 		this.div.append(this.table);
-		for (var row = 0; row < this.height; row++) {
-			var rowElt = $('<tr>');
+		for (row = 0; row < this.height; row++) {
+			rowElt = $('<tr>');
 			this.table.append(rowElt);
-			for (var col = 0; col < this.width; col++) {
-				var cellElt = $('<td>');
+			for (col = 0; col < this.width; col++) {
+				cellElt = $('<td>');
 				cellElt.addClass('empty');
 				rowElt.append(cellElt);
 			}
@@ -444,8 +452,9 @@ Tetris.NextShapeDisplay.prototype = {
 		}
 	},
 	clear: function() {
+		var row;
 		this.currentShape = null;
-		for (var row = 0; row < this.getHeight(); row++) {
+		for (row = 0; row < this.getHeight(); row++) {
 			this.setRowEmpty(row);
 		}
 	}
