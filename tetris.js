@@ -12,20 +12,22 @@ if (typeof(Tetris) === "undefined") {
 	Tetris = {};
 }
 
-Tetris.Board = function(width, height, div) {
+/**
+ * Abstract superclass for board and next shape display.
+ * Thin wrapper around an HTML table.
+ * @param width width in columns
+ * @param height height in rows
+ * @param div Container of created table
+ * @returns {Tetris.Grid} Newly-created Grid instance
+ */
+Tetris.Grid = function(width, height, div) {
 	this.div = div;
-	this.nextType = this.randomShapeType();
-	this.createGrid(width, height);
-	this.initEvents();
+	if (div) {
+		this.createGrid(width, height);
+	}
 };
 
-$.extend(Tetris.Board.prototype, {
-	initRow: function(rowElt, width) {
-		var col;
-		for (col = 0; col < width; col++) {
-			rowElt.append($('<td>').addClass('empty'));
-		}
-	},
+$.extend(Tetris.Grid.prototype, {
 	createGrid : function(width, height) {
 		var row, rowElt;
 		this.table = $('<table>');
@@ -51,34 +53,11 @@ $.extend(Tetris.Board.prototype, {
 	setShape: function(row, col, type) {
 		this.cellAt(row, col).attr('class', Tetris.shapeClasses[type]);
 	},
-	randomShapeType: function() {
-		// XXX: For testing:
-		// return 0;
-		return randomBetween(0, Tetris.shapeBitmaps.length - 1);
-	},
-	createShape: function() {
-		var type = this.nextType;
-		this.nextType = this.randomShapeType();
-		this.currentShape = new Tetris.Shape(this, 0, Math.round(this.getWidth() / 2 - Tetris.shapeBitmaps[type][0].length / 2), type);
-		return this.currentShape.show();
-	},
-	tick: function() {
-		if (this.currentShape) {
-			this.currentShape.fall();
-			return true;
-		} else {
-			var ret = this.createShape();
-			return ret;
-		}
-	},
-	isRowFilled: function(row) {
+	initRow: function(rowElt, width) {
 		var col;
-		for (col = 0; col < this.getWidth(); col++) {
-			if (this.isEmpty(row, col)) {
-				return false; // gap in this row
-			}
+		for (col = 0; col < width; col++) {
+			rowElt.append($('<td>').addClass('empty'));
 		}
-		return true;
 	},
 	setEmpty: function(row, col) {
 		this.cellAt(row, col).attr('class', 'empty');
@@ -95,6 +74,51 @@ $.extend(Tetris.Board.prototype, {
 		for (row = 0; row < this.getHeight(); row++) {
 			this.setRowEmpty(row);
 		}
+	}
+});
+
+Tetris.Board = function(width, height, div) {
+	Tetris.Grid.call(this, width, height, div);
+	this.nextType = this.randomShapeType();
+	this.initEvents();
+};
+
+Tetris.Board.prototype = new Tetris.Grid();
+
+$.extend(Tetris.Board.prototype, {
+	ticks: 0,
+	getTicks: function() {
+		return this.ticks;
+	},
+	randomShapeType: function() {
+		// XXX: For testing:
+		// return 0;
+		return randomBetween(0, Tetris.shapeBitmaps.length - 1);
+	},
+	createShape: function() {
+		var type = this.nextType;
+		this.nextType = this.randomShapeType();
+		this.currentShape = new Tetris.Shape(this, 0, Math.round(this.getWidth() / 2 - Tetris.shapeBitmaps[type][0].length / 2), type);
+		return this.currentShape.show();
+	},
+	tick: function() {
+		this.ticks++;
+		if (this.currentShape) {
+			this.currentShape.fall();
+			return true;
+		} else {
+			var ret = this.createShape();
+			return ret;
+		}
+	},
+	isRowFilled: function(row) {
+		var col;
+		for (col = 0; col < this.getWidth(); col++) {
+			if (this.isEmpty(row, col)) {
+				return false; // gap in this row
+			}
+		}
+		return true;
 	},
 	insertBlankRow : function() {
 		var rowElt = $('<tr>');
@@ -164,6 +188,10 @@ $.extend(Tetris.Board.prototype, {
 			console.log("Unhandled keypress", event);
 			return false;
 		});
+	},
+	clear: function() {
+		this.ticks = 0;
+		Tetris.Grid.clear.call(this);
 	}
 });
 
@@ -389,79 +417,40 @@ $.extend(Tetris.Shape.prototype, {
 });
 
 Tetris.NextShapeDisplay = function(div) {
-	this.div = div;
-	this.calcSize();
-	this.createGrid();
+	var size = this.calcSize();
+	Tetris.Grid.call(this, size.width, size.height, div);
 };
+
+Tetris.NextShapeDisplay.prototype = new Tetris.Grid();
 
 $.extend(Tetris.NextShapeDisplay.prototype, {
 	calcSize: function() {
-		this.width = 0;
-		this.height = 0;
-		for (var type = 0; type < Tetris.shapeBitmaps.length; type++) {
-			if (Tetris.shapeBitmaps[type].length > this.height) {
-				this.height = Tetris.shapeBitmaps[type].length;
-			}
-			for (var row = 0; row < Tetris.shapeBitmaps[type].length; row++) {
-				if (Tetris.shapeBitmaps[type][row].length > this.width) {
-					this.width = Tetris.shapeBitmaps[type][row].length;
-				}
+		var type, row, width = 0, height = 0;
+		for (type = 0; type < Tetris.shapeBitmaps.length; type++) {
+			height = Math.max(height, Tetris.shapeBitmaps[type].length);
+			for (row = 0; row < Tetris.shapeBitmaps[type].length; row++) {
+				width = Math.max(width, Tetris.shapeBitmaps[type][row].length);
 			}
 		}
+		return {width: width, height: height};
 	},
-	createGrid: function() {
-		var row, col, rowElt, cellElt;
-		this.table = $('<table>');
-		this.div.append(this.table);
-		for (row = 0; row < this.height; row++) {
-			rowElt = $('<tr>');
-			this.table.append(rowElt);
-			for (col = 0; col < this.width; col++) {
-				cellElt = $('<td>');
-				cellElt.addClass('empty');
-				rowElt.append(cellElt);
-			}
-		}
+	isEmpty: function(row, col) {
+		return true;
 	},
 	display: function(type) {
 		this.clear();
 		this.currentShape = new Tetris.Shape(this, 0, 0, type);
 		this.currentShape.show();
-	},
-	isEmpty: function(row, col) {
-		return true;
-	},
-	getHeight: function() {
-		return this.height;
-	},
-	getWidth: function() {
-		return this.width;
-	},
-	// TODO: Factor out remaining methods into superclass
-	setShape: function(row, col, type) {
-		this.cellAt(row, col).attr('class', Tetris.shapeClasses[type]);
-	},
-	cellAt: function(row, col) {
-		return $(this.table[0].rows[row].cells[col]);
-	},
-	setEmpty: function(row, col) {
-		this.cellAt(row, col).attr('class', 'empty');
-	},
-	setRowEmpty: function(row) {
-		for (var col = 0; col < this.getWidth(); col++) {
-			this.setEmpty(row, col);
-		}
-	},
-	clear: function() {
-		var row;
-		this.currentShape = null;
-		for (row = 0; row < this.getHeight(); row++) {
-			this.setRowEmpty(row);
-		}
 	}
 });
 
 $.extend(Tetris, {
+	delay: function(ticks) {
+		var delay = 1000 - (ticks / 3);
+		// TODO: Display speed
+		// debug({ticks: ticks, delay: delay});
+		return delay;
+	},
 	shapeBitmaps: [
                	[
             	 'XX',

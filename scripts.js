@@ -8,14 +8,16 @@ jQuery(function() {
 			nextShapeDisplay = new Tetris.NextShapeDisplay($('#nextShapeDiv')),
 			board = new Tetris.Board(width, height, $('#boardDiv'));
 		function timerFunc() {
+			clearInterval(interval);
 			if (board.tick()) {
 				nextShapeDisplay.display(board.nextType);
+				interval = setInterval(timerFunc, Tetris.delay(board.getTicks()));
 			} else {
 				stopRunning();
 			}
 		}
-		function startRunning(delay) {
-			interval = setInterval(timerFunc, delay);
+		function startRunning() {
+			interval = setInterval(timerFunc, Tetris.delay(board.getTicks()));
 			stopGoButton.val('Pause');
 		}
 		function stopRunning() {
@@ -23,20 +25,20 @@ jQuery(function() {
 			interval = undefined;
 			stopGoButton.val('Go');
 		}
-		function toggleRunning(delay) {
+		function toggleRunning() {
 			if (interval) {
 				stopRunning();
 			} else {
-				startRunning(delay);
+				startRunning();
 			}
 		}
 		stopGoButton.on('click', function() {
-			toggleRunning(1000);
+			toggleRunning();
 		});
 		resetButton.on('click', function() {
 			stopRunning();
 			board.clear();
 		});
-		startRunning(1000);
+		startRunning();
 	})(jQuery);
 });
