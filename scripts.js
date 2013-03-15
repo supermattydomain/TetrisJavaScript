@@ -36,14 +36,9 @@ jQuery(function() {
 				startRunning();
 			}
 		}
-		stopGoButton.on('click', function() {
-			toggleRunning();
-		});
-		resetButton.on('click', function() {
-			stopRunning();
-			stopGoButton.removeAttr("disabled");
-			board.clear();
-		});
+		function focusBoard() {
+			boardDiv.focus();
+		}
 		var keyHandlers = {
 				32: function() { board.drop(); },
 				37: function() { board.moveLeft(); },
@@ -62,10 +57,19 @@ jQuery(function() {
 			}
 			return false;
 		});
+		// When the stop/go button is clicked, toggle game running state
+		stopGoButton.on('click', function() {
+			toggleRunning();
+			focusBoard();
+		});
+		// When the reset button is clicked, stop the game and clear the board
+		resetButton.on('click', function() {
+			stopRunning();
+			stopGoButton.removeAttr("disabled");
+			board.clear();
+			focusBoard();
+		});
 		// Ensure that keyboard focus remains with board, rather than some other keyboard-sensitive widget.
-		function focusBoard() {
-			boardDiv.focus();
-		}
 		boardDiv.on("blur", focusBoard);
 		speedSlider.slider({ stop: focusBoard });
 		// Increase speed when a row is filled
