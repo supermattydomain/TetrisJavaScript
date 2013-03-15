@@ -130,6 +130,7 @@ $.extend(Tetris.Board.prototype, {
 		for (rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
 			if (this.isRowFilled(rowIndex)) {
 				this.zapRowDelete(rowIndex);
+				this.div.trigger(Tetris.eventNames.rowFilled);
 				// continue to examine same row index, which is now new row
 			} else {
 				rowIndex--;
@@ -358,6 +359,7 @@ $.extend(Tetris.Shape.prototype, {
 			// No longer the current shape - now just an obstacle
 			this.board.currentShape = null;
 			this.board.zapFilledRows();
+			this.board.div.trigger(Tetris.eventNames.shapeFallBlocked);
 			return false;
 		}
 		this.hide();
@@ -461,5 +463,6 @@ $.extend(Tetris, {
             	 'XX '
             	]
             ],
-	shapeClasses: [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ]
+	shapeClasses: [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ],
+	eventNames: { shapeFallBlocked: "Tetris.shapeFallBlocked", rowFilled: "Tetris.rowFilled" }
 });

@@ -1,13 +1,13 @@
 jQuery(function() {
 	(function($) {
-		var width = 10,
-			height = 20,
+		var boardColumns = 10,
+			boardRows = 20,
 			interval = undefined,
 			stopGoButton = $('#stopGoButton'),
 			resetButton = $('#resetButton'),
 			nextShapeDisplay = new Tetris.NextShapeDisplay($('#nextShape')),
 			boardDiv = $('#board'),
-			board = new Tetris.Board(width, height, boardDiv),
+			board = new Tetris.Board(boardColumns, boardRows, boardDiv),
 			speedSlider = $("#speedSlider");
 		function timerFunc() {
 			clearInterval(interval);
@@ -16,6 +16,7 @@ jQuery(function() {
 				interval = setInterval(timerFunc, Tetris.delay(speedSlider.slider("option", "value")));
 			} else {
 				stopRunning();
+				nextShapeDisplay.clear();
 				stopGoButton.attr("disabled", "disabled");
 			}
 		}
@@ -63,7 +64,6 @@ jQuery(function() {
 				event.preventDefault();
 				return true;
 			}
-			// console.log("Unhandled keypress", event);
 			return false;
 		});
 		// Ensure that keyboard focus remains with board, rather than some other keyboard-sensitive widget.
@@ -72,6 +72,10 @@ jQuery(function() {
 		}
 		boardDiv.on("blur", focusBoard);
 		speedSlider.slider({ stop: focusBoard });
+		// Increase speed when a row is filled
+		boardDiv.on(Tetris.eventNames.rowFilled, function() {
+			speedSlider.slider("option", "value", speedSlider.slider("option", "value") + 1);
+		});
 		startRunning();
 	})(jQuery);
 });
