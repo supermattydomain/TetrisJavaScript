@@ -10,14 +10,10 @@ jQuery(function() {
 			board = new Tetris.Board(boardColumns, boardRows, boardDiv),
 			speedSlider = $("#speedSlider");
 		function timerFunc() {
-			clearInterval(interval);
-			if (board.tick()) {
-				nextShapeDisplay.display(board.nextType);
+			board.tick();
+			if (isRunning()) {
+				clearInterval(interval);
 				interval = setInterval(timerFunc, Tetris.delay(speedSlider.slider("option", "value")));
-			} else {
-				stopRunning();
-				nextShapeDisplay.clear();
-				stopGoButton.attr("disabled", "disabled");
 			}
 		}
 		function startRunning() {
@@ -73,8 +69,18 @@ jQuery(function() {
 		boardDiv.on("blur", focusBoard);
 		speedSlider.slider({ stop: focusBoard });
 		// Increase speed when a row is filled
-		boardDiv.on(Tetris.eventNames.rowFilled, function() {
+		boardDiv.on(Tetris.eventNames.rowZapped, function(event, rowIndex) {
 			speedSlider.slider("option", "value", speedSlider.slider("option", "value") + 1);
+		});
+		// When board's next shape changes, display it in the next-shape display
+		boardDiv.on(Tetris.eventNames.nextShapeChanged, function(event, nextShapeType) {
+			nextShapeDisplay.display(nextShapeType);
+		});
+		// When there is no room to show a new shape, the game is over
+		boardDiv.on(Tetris.eventNames.shapeShowBlocked, function(event) {
+			stopRunning();
+			nextShapeDisplay.clear();
+			stopGoButton.attr("disabled", "disabled");
 		});
 		startRunning();
 	})(jQuery);

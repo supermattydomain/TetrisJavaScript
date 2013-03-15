@@ -98,14 +98,17 @@ $.extend(Tetris.Board.prototype, {
 		var type = this.nextType;
 		this.nextType = this.randomShapeType();
 		this.currentShape = new Tetris.Shape(this, 0, Math.round(this.getWidth() / 2 - Tetris.shapeBitmaps[type][0].length / 2), type);
-		return this.currentShape.show();
+		this.div.trigger(Tetris.eventNames.nextShapeChanged, this.nextType);
+		if (!this.currentShape.show()) {
+			this.div.trigger(Tetris.eventNames.shapeShowBlocked);
+		}
 	},
 	tick: function() {
 		if (this.currentShape) {
 			this.currentShape.fall();
-			return true; // Game not yet over
+		} else {
+			this.createShape();
 		}
-		return this.createShape();
 	},
 	isRowFilled: function(row) {
 		var col;
@@ -130,7 +133,7 @@ $.extend(Tetris.Board.prototype, {
 		for (rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
 			if (this.isRowFilled(rowIndex)) {
 				this.zapRowDelete(rowIndex);
-				this.div.trigger(Tetris.eventNames.rowFilled);
+				this.div.trigger(Tetris.eventNames.rowZapped, rowIndex);
 				// continue to examine same row index, which is now new row
 			} else {
 				rowIndex--;
@@ -464,5 +467,10 @@ $.extend(Tetris, {
             	]
             ],
 	shapeClasses: [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ],
-	eventNames: { shapeFallBlocked: "Tetris.shapeFallBlocked", rowFilled: "Tetris.rowFilled" }
+	eventNames: {
+		shapeFallBlocked: "Tetris.shapeFallBlocked",
+		shapeShowBlocked: "Tetris.shapeShowBlocked",
+		rowZapped: "Tetris.rowZapped",
+		nextShapeChanged: "Tetris.nextShapeChanged"
+	}
 });
