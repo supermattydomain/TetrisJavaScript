@@ -6,8 +6,8 @@ jQuery(function() {
 			stopGoButton = $('#stopGoButton'),
 			resetButton = $('#resetButton'),
 			nextShapeDisplay = new Tetris.NextShapeDisplay($('#nextShape')),
-			board = new Tetris.Board(width, height, $('#board')),
-			$board = $(board),
+			boardDiv = $('#board'),
+			board = new Tetris.Board(width, height, boardDiv),
 			speedSlider = $("#speedSlider");
 		function timerFunc() {
 			clearInterval(interval);
@@ -30,10 +30,10 @@ jQuery(function() {
 			stopGoButton.val('Go');
 		}
 		function isRunning() {
-			return typeof(interval) !== "undefined";
+			return !!interval;
 		}
 		function toggleRunning() {
-			if (interval) {
+			if (isRunning()) {
 				stopRunning();
 			} else {
 				startRunning();
@@ -66,13 +66,12 @@ jQuery(function() {
 			// console.log("Unhandled keypress", event);
 			return false;
 		});
-		// Ensure that keyboard focus remains with board.
-		// FIXME: If the key event handler were on the document, this might be unnecessary
-		$board.on("blur", function(event) {
-			debug("board lost focus");
-			$board.focus();
-		});
-		speedSlider.slider();
+		// Ensure that keyboard focus remains with board, rather than some other keyboard-sensitive widget.
+		function focusBoard() {
+			boardDiv.focus();
+		}
+		boardDiv.on("blur", focusBoard);
+		speedSlider.slider({ stop: focusBoard });
 		startRunning();
 	})(jQuery);
 });
