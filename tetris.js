@@ -432,7 +432,7 @@ $.extend(Tetris, {
 	shapeBitmaps: [
                	[
             	 'XX',
-            	 'XX',
+            	 'XX'
             	 ],
             	[
             	 '  X  ',
