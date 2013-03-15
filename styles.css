@@ -1,85 +1,74 @@
 @CHARSET "UTF-8";
 
+.clearFloat {
+	clear: both;
+	position: relative;
+	height: 0px;
+	font-size: 1px;
+	line-height: 0px;
+	overflow: hidden;
+}
 body {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
 	background-color: #ffffff;
 }
-#logDiv {
-	position: relative;
-	float: right;
-	overflow: auto;
-	width: 50%;
-}
-div.display {
-	padding: 10px;
-	margin: 10px;
-}
-div.board {
-	padding: 10px;
-	margin: 10px;
-	/*border-width: 10px;*/
-	clear: left;
-}
-div.nextShape {
-	display: inline;
-	float: left;
-    padding: 0px;
-    margin: 10px;
-	clear: right;
-}
-.nextShape td {
-	padding: 0px;
+div, table, span {
 	margin: 0px;
-}
-
-div.controls {
-	clear: both;
-}
-.board table, .nextShape table {
-	background-color: #000000;
-	float: left;
 	padding: 0px;
-	border-style: none;
-	border-width: 0px;
+	float: left; /* also triggers shrink-wrap */
+}
+#board {
+	margin: 0px 10px 10px 0px;
+}
+.border {
+	border: 5px inset #999999;
+}
+#nextShapeContainer {
+	margin: 0px 10px 10px 0px;
+}
+table.grid {
+	background-color: #000000;
+	border: 0px none #000000;
 	border-collapse: separate;
 	border-spacing: 2px;
 	empty-cells: show;
 }
-.board td {
-    width: 16px;
-    height: 16px;
-}
-.nextShape td {
+#nextShape table.grid td {
     width: 10px;
     height: 10px;
 }
-.board td.empty, .nextShape td.empty {
+#board table.grid td {
+    width: 16px;
+    height: 16px;
+}
+#speedLabel {
+	margin: 10px 10px 10px 0px;
+}
+#speedSlider {
+	position: relative;
+	width: 200px;
+	margin: 10px;
+}
+table.grid td.empty {
 	background-color: #000000;
 }
-.board td.blue, .nextShape td.blue {
+table.grid td.blue {
 	background-color: #000099;
 }
-.board td.red, .nextShape td.red {
+table.grid td.red {
 	background-color: #ff0000;
 }
-.board td.yellow, .nextShape td.yellow {
+table.grid td.yellow {
 	background-color: #999900;
 }
-.board td.magenta, .nextShape td.magenta {
+table.grid td.magenta {
 	background-color: #ff00ff;
 }
-.board td.green, .nextShape td.green {
+table.grid td.green {
 	background-color: #00ff00;
 }
-.board td.brightyellow, .nextShape td.brightyellow {
+table.grid td.brightyellow {
 	background-color: #ffff00;
 }
-.board td.brightblue, .nextShape td.brightblue {
+table.grid td.brightblue {
 	background-color: #0000ff;
-}
-#dummytextarea {
 }

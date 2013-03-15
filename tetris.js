@@ -29,9 +29,13 @@ Tetris.Grid = function(width, height, div) {
 
 $.extend(Tetris.Grid.prototype, {
 	createGrid : function(width, height) {
-		var row, rowElt;
+		var row, rowElt, border;
+		border = $('<div>');
+		border.addClass("border");
 		this.table = $('<table>');
-		this.div.append(this.table);
+		this.table.addClass("grid");
+		border.append(this.table);
+		this.div.append(border);
 		for (row = 0; row < height; row++) {
 			rowElt = $('<tr>');
 			this.initRow(rowElt, width);
@@ -80,16 +84,11 @@ $.extend(Tetris.Grid.prototype, {
 Tetris.Board = function(width, height, div) {
 	Tetris.Grid.call(this, width, height, div);
 	this.nextType = this.randomShapeType();
-	this.initEvents();
 };
 
 Tetris.Board.prototype = new Tetris.Grid();
 
 $.extend(Tetris.Board.prototype, {
-	ticks: 0,
-	getTicks: function() {
-		return this.ticks;
-	},
 	randomShapeType: function() {
 		// XXX: For testing:
 		// return 0;
@@ -102,14 +101,11 @@ $.extend(Tetris.Board.prototype, {
 		return this.currentShape.show();
 	},
 	tick: function() {
-		this.ticks++;
 		if (this.currentShape) {
 			this.currentShape.fall();
-			return true;
-		} else {
-			var ret = this.createShape();
-			return ret;
+			return true; // Game not yet over
 		}
+		return this.createShape();
 	},
 	isRowFilled: function(row) {
 		var col;
@@ -170,28 +166,6 @@ $.extend(Tetris.Board.prototype, {
 			this.createShape();
 		}
 		this.currentShape.rotate(clockwise);
-	},
-	initEvents: function() {
-		var handlers = {
-			32: function() { this.drop(); },
-			37: function() { this.moveLeft(); },
-			38: function() { this.rotate(false); },
-			39: function() { this.moveRight(); },
-			40: function() { this.fall(); }
-		}, tthis = this;
-		$(document).on('keydown', function(event) {
-			if ((event.which || event.keyCode) in handlers) {
-				handlers[event.which || event.keyCode].apply(tthis);
-				event.preventDefault();
-				return true;
-			}
-			console.log("Unhandled keypress", event);
-			return false;
-		});
-	},
-	clear: function() {
-		this.ticks = 0;
-		Tetris.Grid.clear.call(this);
 	}
 });
 
@@ -445,11 +419,10 @@ $.extend(Tetris.NextShapeDisplay.prototype, {
 });
 
 $.extend(Tetris, {
-	delay: function(ticks) {
-		var delay = 1000 - (ticks / 3);
-		// TODO: Display speed
-		// debug({ticks: ticks, delay: delay});
-		return delay;
+	maxDelay: 1000, // Slowest speed: one second per tick
+	delay: function(percentage) {
+		percentage = 100 - percentage; // Invert sense
+		return percentage * Tetris.maxDelay / 100;
 	},
 	shapeBitmaps: [
                	[
