@@ -50,25 +50,76 @@ table.grid {
 }
 table.grid td.empty {
 	background-color: #000000;
+	border: 1px solid #000000;
 }
 table.grid td.blue {
 	background-color: #000099;
+	/* TODO: Use Modernizr? */
+	background-image: -webkit-linear-gradient(   bottom right, #000077, #eeeeff);
+	background-image:    -moz-linear-gradient(   bottom right, #000077, #eeeeff);
+	background-image:     -ms-linear-gradient(   bottom right, #000077, #eeeeff);
+	background-image:      -o-linear-gradient(   bottom right, #000077, #eeeeff);
+	background-image:         linear-gradient(to bottom right, #000077, #eeeeff);
+	border-width: 1px;
+	border-style: outset;
 }
 table.grid td.red {
 	background-color: #ff0000;
+	background-image: -webkit-linear-gradient(   bottom right, #ff0000, #ffeeee);
+	background-image:    -moz-linear-gradient(   bottom right, #ff0000, #ffeeee);
+	background-image:     -ms-linear-gradient(   bottom right, #ff0000, #ffeeee);
+	background-image:      -o-linear-gradient(   bottom right, #ff0000, #ffeeee);
+	background-image:         linear-gradient(to bottom right, #ff0000, #ffeeee);
+	border-width: 1px;
+	border-style: outset;
 }
 table.grid td.yellow {
 	background-color: #999900;
+	background-image: -webkit-linear-gradient(   bottom right, #999900, #ffffcc);
+	background-image:    -moz-linear-gradient(   bottom right, #999900, #ffffcc);
+	background-image:     -ms-linear-gradient(   bottom right, #999900, #ffffcc);
+	background-image:      -o-linear-gradient(   bottom right, #999900, #ffffcc);
+	background-image:         linear-gradient(to bottom right, #999900, #ffffcc);
+	border-width: 1px;
+	border-style: outset;
 }
 table.grid td.magenta {
 	background-color: #ff00ff;
+	background-image: -webkit-linear-gradient(   bottom right, #ff00ff, #ffffff);
+	background-image:    -moz-linear-gradient(   bottom right, #ff00ff, #ffffff);
+	background-image:     -ms-linear-gradient(   bottom right, #ff00ff, #ffffff);
+	background-image:      -o-linear-gradient(   bottom right, #ff00ff, #ffffff);
+	background-image:         linear-gradient(to bottom right, #ff00ff, #ffffff);
+	border-width: 1px;
+	border-style: outset;
 }
 table.grid td.green {
 	background-color: #00ff00;
+	background-image: -webkit-linear-gradient(   bottom right, #00dd00, #ffffff);
+	background-image:    -moz-linear-gradient(   bottom right, #00dd00, #ffffff);
+	background-image:     -ms-linear-gradient(   bottom right, #00dd00, #ffffff);
+	background-image:      -o-linear-gradient(   bottom right, #00dd00, #ffffff);
+	background-image:         linear-gradient(to bottom right, #00dd00, #ffffff);
+	border-width: 1px;
+	border-style: outset;
 }
 table.grid td.brightyellow {
 	background-color: #ffff00;
+	background-image: -webkit-linear-gradient(   bottom right, #ffff00, #ffffff);
+	background-image:    -moz-linear-gradient(   bottom right, #ffff00, #ffffff);
+	background-image:     -ms-linear-gradient(   bottom right, #ffff00, #ffffff);
+	background-image:      -o-linear-gradient(   bottom right, #ffff00, #ffffff);
+	background-image:         linear-gradient(to bottom right, #ffff00, #ffffff);
+	border-width: 1px;
+	border-style: outset;
 }
 table.grid td.brightblue {
 	background-color: #0000ff;
+	background-image: -webkit-linear-gradient(   bottom right, #0000ff, #ddddff);
+	background-image:    -moz-linear-gradient(   bottom right, #0000ff, #ddddff);
+	background-image:     -ms-linear-gradient(   bottom right, #0000ff, #ddddff);
+	background-image:      -o-linear-gradient(   bottom right, #0000ff, #ddddff);
+	background-image:         linear-gradient(to bottom right, #0000ff, #ddddff);
+	border-width: 1px;
+	border-style: outset;
 }
