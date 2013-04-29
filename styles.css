@@ -1,6 +1,6 @@
 @CHARSET "UTF-8";
 
-.clearFloat {
+.clearfloat {
 	clear: both;
 	position: relative;
 	height: 0px;
