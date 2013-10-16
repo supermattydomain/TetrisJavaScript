@@ -1,5 +1,5 @@
-jQuery(function() {
-	(function($) {
+(function($) {
+	$(function() {
 		var boardColumns = 10,
 			boardRows = 20,
 			interval = undefined,
@@ -85,7 +85,8 @@ jQuery(function() {
 			stopRunning();
 			nextShapeDisplay.clear();
 			stopGoButton.attr("disabled", "disabled");
+			$().toastmessage('showNoticeToast', 'Game over');
 		});
 		startRunning();
-	})(jQuery);
-});
+	});
+})(jQuery);
