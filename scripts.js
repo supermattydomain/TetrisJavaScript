@@ -59,7 +59,8 @@
 			}
 		});
 		// Increase speed when a row is filled
-		boardDiv.on(Tetris.eventNames.rowZapped, function(event, rowIndex) {
+		boardDiv.on(Tetris.eventNames.rowsZapped, function(event, rowIndex) {
+			Tetris.sounds.rowsZapped.play();
 			var value = speedSlider.slider("option", "value");
 			board.setDelay(Tetris.delay(value));
 			speedSlider.slider("option", "value", value + 1);
@@ -81,6 +82,9 @@
 		});
 		boardDiv.on(Tetris.eventNames.boardStopped, function() {
 			stopGoButton.val('Resume');
+		});
+		boardDiv.on(Tetris.eventNames.shapeFallBlocked, function() {
+			Tetris.sounds.shapeFallBlocked.play();
 		});
 		board.setDelay(Tetris.delay(speedSlider.slider("option", "value")));
 		$(document).focus();

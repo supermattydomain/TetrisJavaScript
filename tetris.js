@@ -16,6 +16,15 @@ function tableCellAt(table, row, col) {
 	return $(table[0].rows[row].cells[col]);
 }
 
+Tetris.sounds = {
+	shapeFallBlocked: new Howl({
+		urls: ['bump.wav']
+	}),
+	rowsZapped: new Howl({
+		urls: [ 'success.wav' ]
+	})
+};
+
 /**
  * Abstract superclass for board and next shape display.
  * Thin wrapper around an HTML table.
@@ -157,6 +166,7 @@ $.extend(Tetris.Board.prototype, {
 			}
 		}
 		if (rowsToZap.length) {
+			this.div.trigger(Tetris.eventNames.rowsZapped);
 			rowsToZap.effect("fade", this.delay / 2);
 			// Called when all effects on the all of the fading rows are complete
 			rowsToZap.promise().done(function() {
@@ -527,7 +537,7 @@ $.extend(Tetris, {
 		boardStopped: "Tetris.boardStopped",
 		shapeFallBlocked: "Tetris.shapeFallBlocked",
 		shapeShowBlocked: "Tetris.shapeShowBlocked",
-		rowZapped: "Tetris.rowZapped",
+		rowsZapped: "Tetris.rowsZapped",
 		nextShapeChanged: "Tetris.nextShapeChanged"
 	}
 });
