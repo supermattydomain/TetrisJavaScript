@@ -2,43 +2,12 @@
 	$(function() {
 		var boardColumns = 10,
 			boardRows = 20,
-			interval = undefined,
 			stopGoButton = $('#stopGoButton'),
 			resetButton = $('#resetButton'),
 			nextShapeDisplay = new Tetris.NextShapeDisplay($('#nextShape')),
 			boardDiv = $('#board'),
 			board = new Tetris.Board(boardColumns, boardRows, boardDiv),
 			speedSlider = $("#speedSlider");
-		function timerFunc() {
-			board.tick();
-			if (isRunning()) {
-				clearInterval(interval);
-				interval = setInterval(timerFunc, Tetris.delay(speedSlider.slider("option", "value")));
-			}
-		}
-		function startRunning() {
-			clearInterval(interval);
-			interval = setInterval(timerFunc, Tetris.delay(speedSlider.slider("option", "value")));
-			stopGoButton.val('Pause');
-		}
-		function stopRunning() {
-			clearInterval(interval);
-			interval = undefined;
-			stopGoButton.val('Go');
-		}
-		function isRunning() {
-			return !!interval;
-		}
-		function toggleRunning() {
-			if (isRunning()) {
-				stopRunning();
-			} else {
-				startRunning();
-			}
-		}
-		function focusBoard() {
-			boardDiv.focus();
-		}
 		var keyHandlers = {
 				32: function() { board.drop(); },
 				37: function() { board.moveLeft(); },
@@ -47,7 +16,7 @@
 				40: function() { board.fall(); }
 		};
 		$(document).on('keydown', function(event) {
-			if (!isRunning()) {
+			if (!board.isRunning()) {
 				return false;
 			}
 			if ((event.which || event.keyCode) in keyHandlers) {
@@ -57,24 +26,43 @@
 			}
 			return false;
 		});
-		// When the stop/go button is clicked, toggle game running state
+		// When the stop/go button is pressed, toggle game running state.
+		// Also move input focus off the button afterwards,
+		// so a later spacebar press doesn't pause/resume the game again.
 		stopGoButton.on('click', function() {
-			toggleRunning();
-			focusBoard();
+			board.toggleRunning();
+			boardDiv.focus();
+			// FIXME: If the document got focus, the browser wouldn't show an ugly
+			// focus outline around the board.
+			$(document).focus();
 		});
-		// When the reset button is clicked, stop the game and clear the board
+		// When the reset button is clicked, stop the game and clear the board.
+		// Again, move focus off the control afterwards.
 		resetButton.on('click', function() {
-			stopRunning();
+			board.stop();
 			stopGoButton.removeAttr("disabled");
 			board.clear();
-			focusBoard();
+			boardDiv.focus();
+			// FIXME: If the document got focus, the browser wouldn't show an ugly
+			// focus outline around the board.
+			$(document).focus();
 		});
-		// Ensure that keyboard focus remains with board, rather than some other keyboard-sensitive widget.
-		boardDiv.on("blur", focusBoard);
-		speedSlider.slider({ stop: focusBoard });
+		// When the speed slider's value changes, change the board's speed.
+		// Again, move focus off the control afterwards.
+		speedSlider.slider({
+			stop: function() {
+				board.setDelay(Tetris.delay(speedSlider.slider("option", "value")));
+				boardDiv.focus();
+				// FIXME: If the document got focus, the browser wouldn't show an ugly
+				// focus outline around the board.
+				$(document).focus();
+			}
+		});
 		// Increase speed when a row is filled
 		boardDiv.on(Tetris.eventNames.rowZapped, function(event, rowIndex) {
-			speedSlider.slider("option", "value", speedSlider.slider("option", "value") + 1);
+			var value = speedSlider.slider("option", "value");
+			board.setDelay(Tetris.delay(value));
+			speedSlider.slider("option", "value", value + 1);
 		});
 		// When board's next shape changes, display it in the next-shape display
 		boardDiv.on(Tetris.eventNames.nextShapeChanged, function(event, nextShapeType) {
@@ -82,11 +70,20 @@
 		});
 		// When there is no room to show a new shape, the game is over
 		boardDiv.on(Tetris.eventNames.shapeShowBlocked, function(event) {
-			stopRunning();
+			board.stop();
 			nextShapeDisplay.clear();
 			stopGoButton.attr("disabled", "disabled");
 			$().toastmessage('showNoticeToast', 'Game over');
 		});
-		startRunning();
+		// Update the UI when the board's state changes
+		boardDiv.on(Tetris.eventNames.boardStarted, function() {
+			stopGoButton.val('Pause');
+		});
+		boardDiv.on(Tetris.eventNames.boardStopped, function() {
+			stopGoButton.val('Resume');
+		});
+		board.setDelay(Tetris.delay(speedSlider.slider("option", "value")));
+		$(document).focus();
+		board.start();
 	});
 })(jQuery);

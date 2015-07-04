@@ -12,6 +12,10 @@ if (typeof(Tetris) === "undefined") {
 	Tetris = {};
 }
 
+function tableCellAt(table, row, col) {
+	return $(table[0].rows[row].cells[col]);
+}
+
 /**
  * Abstract superclass for board and next shape display.
  * Thin wrapper around an HTML table.
@@ -43,7 +47,7 @@ $.extend(Tetris.Grid.prototype, {
 		}
 	},
 	cellAt: function(row, col) {
-		return $(this.table[0].rows[row].cells[col]);
+		return tableCellAt(this.table, row, col);
 	},
 	getWidth: function() {
 		return this.table[0].rows[0].cells.length;
@@ -84,6 +88,8 @@ $.extend(Tetris.Grid.prototype, {
 Tetris.Board = function(width, height, div) {
 	Tetris.Grid.call(this, width, height, div);
 	this.nextType = this.randomShapeType();
+	this.interval = null;
+	this.running = false;
 };
 
 Tetris.Board.prototype = new Tetris.Grid();
@@ -103,11 +109,30 @@ $.extend(Tetris.Board.prototype, {
 			this.div.trigger(Tetris.eventNames.shapeShowBlocked);
 		}
 	},
-	tick: function() {
+	tick: function(onComplete) {
+		var board = this, onComplete = function() {
+			if (board.isRunning()) {
+				board.interval = setTimeout(function() {
+					board.tick();
+				}, board.delay);
+			}
+		};
 		if (this.currentShape) {
-			this.currentShape.fall();
+			if (this.currentShape.fall()) {
+				onComplete(); // Shape fell one row
+			} else {
+				// No longer the current shape - now just an obstacle
+				this.currentShape = null;
+				this.zapFilledRows(function() {
+					onComplete();
+					board.createShape();
+				});
+				// Shape blocked by filled squares or bottom of board
+				this.div.trigger(Tetris.eventNames.shapeFallBlocked);
+			}
 		} else {
 			this.createShape();
+			onComplete();
 		}
 	},
 	isRowFilled: function(row) {
@@ -124,52 +149,86 @@ $.extend(Tetris.Board.prototype, {
 		this.initRow(rowElt, this.getWidth());
 		this.table.prepend(rowElt);
 	},
-	zapRowDelete: function(rowIndex) {
-		$(this.table[0].rows[rowIndex]).remove();
-		this.insertBlankRow();
-	},
-	zapFilledRows: function() {
-		var rowIndex;
-		for (rowIndex = this.getHeight() - 1; rowIndex >= 0; /* NOP */) {
+	zapFilledRows: function(onComplete) {
+		var board = this, rowIndex, rowsToZap = $();
+		for (rowIndex = this.getHeight() - 1; rowIndex >= 0; rowIndex--) {
 			if (this.isRowFilled(rowIndex)) {
-				this.zapRowDelete(rowIndex);
-				this.div.trigger(Tetris.eventNames.rowZapped, rowIndex);
-				// continue to examine same row index, which is now new row
-			} else {
-				rowIndex--;
+				rowsToZap = rowsToZap.add(this.table[0].rows[rowIndex]);
 			}
+		}
+		if (rowsToZap.length) {
+			rowsToZap.effect("fade", this.delay / 2);
+			// Called when all effects on the all of the fading rows are complete
+			rowsToZap.promise().done(function() {
+				var c;
+				rowsToZap.remove();
+				for (var c = 0; c < rowsToZap.length; c++) {
+					board.insertBlankRow();
+				}
+				onComplete();
+			});
+		} else {
+			onComplete();
 		}
 	},
 	drop: function() {
-		if (!this.currentShape) {
-			this.createShape();
-			return; // Don't drop a newly-created shape
+		if (this.currentShape) {
+			this.currentShape.drop();
 		}
-		this.currentShape.drop();
 	},
 	moveLeft: function() {
-		if (!this.currentShape) {
-			this.createShape();
+		if (this.currentShape) {
+			this.currentShape.moveLeft();
 		}
-		this.currentShape.moveLeft();
 	},
 	moveRight: function() {
-		if (!this.currentShape) {
-			this.createShape();
+		if (this.currentShape) {
+			this.currentShape.moveRight();
 		}
-		this.currentShape.moveRight();
 	},
 	fall: function() {
-		if (!this.currentShape) {
-			this.createShape();
+		if (this.currentShape) {
+			this.currentShape.fall();
 		}
-		this.currentShape.fall();
 	},
 	rotate: function(clockwise) {
-		if (!this.currentShape) {
-			this.createShape();
+		if (this.currentShape) {
+			this.currentShape.rotate(clockwise);
 		}
-		this.currentShape.rotate(clockwise);
+	},
+	setDelay: function(newDelay) {
+		this.delay = newDelay;
+	},
+	start: function() {
+		var board = this;
+		if (!this.running) {
+			this.running = true;
+			if (this.interval) {
+				clearTimeout(this.interval);
+			}
+			this.interval = setTimeout(function() { board.tick(); }, this.delay);
+			this.div.trigger(Tetris.eventNames.boardStarted);
+		}
+	},
+	stop: function() {
+		if (this.interval) {
+			clearTimeout(this.interval);
+			this.interval = undefined;
+		}
+		if (this.running) {
+			this.div.trigger(Tetris.eventNames.boardStopped);
+			this.running = false;
+		}
+	},
+	isRunning: function() {
+		return this.running;
+	},
+	toggleRunning: function() {
+		if (this.isRunning()) {
+			this.stop();
+		} else {
+			this.start();
+		}
 	}
 });
 
@@ -359,10 +418,6 @@ $.extend(Tetris.Shape.prototype, {
 	},
 	fall: function() {
 		if (this.blockedDown()) {
-			// No longer the current shape - now just an obstacle
-			this.board.currentShape = null;
-			this.board.zapFilledRows();
-			this.board.div.trigger(Tetris.eventNames.shapeFallBlocked);
 			return false;
 		}
 		this.hide();
@@ -468,6 +523,8 @@ $.extend(Tetris, {
             ],
 	shapeClasses: [ 'blue', 'red', 'yellow', 'magenta', 'green', 'brightyellow', 'brightblue' ],
 	eventNames: {
+		boardStarted: "Tetris.boardStarted",
+		boardStopped: "Tetris.boardStopped",
 		shapeFallBlocked: "Tetris.shapeFallBlocked",
 		shapeShowBlocked: "Tetris.shapeShowBlocked",
 		rowZapped: "Tetris.rowZapped",
