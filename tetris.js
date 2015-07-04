@@ -18,10 +18,10 @@ function tableCellAt(table, row, col) {
 
 Tetris.sounds = {
 	shapeFallBlocked: new Howl({
-		urls: ['bump.wav']
+		urls: [ 'bump.mp3', 'bump.wav' ]
 	}),
 	rowsZapped: new Howl({
-		urls: [ 'success.wav' ]
+		urls: [ 'success.mp3', 'success.wav' ]
 	})
 };
 
