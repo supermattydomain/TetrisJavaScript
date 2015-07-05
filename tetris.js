@@ -51,13 +51,13 @@ function tableCellAt(table, row, col) {
 
 Tetris.sounds = {
 	shapeFallBlocked: new Howl({
-		urls: [ 'bump.mp3', 'bump.ogg', 'bump.wav' ]
+		urls: [ 'sounds/bump.mp3', 'sounds/bump.ogg', 'sounds/bump.wav' ]
 	}),
 	rowsZapped: new Howl({
-		urls: [ 'success.mp3', 'success.ogg', 'success.wav' ]
+		urls: [ 'sounds/success.mp3', 'sounds/success.ogg', 'sounds/success.wav' ]
 	}),
 	shapeShowBlocked: new Howl({
-		urls: [ 'negative-beeps.mp3', 'negative-beeps.ogg', 'negative-beeps.wav' ]
+		urls: [ 'sounds/negative-beeps.mp3', 'sounds/negative-beeps.ogg', 'sounds/negative-beeps.wav' ]
 	})
 };
 
@@ -79,10 +79,8 @@ Tetris.Grid = function(width, height, div) {
 $.extend(Tetris.Grid.prototype, {
 	createGrid : function(width, height) {
 		var row, rowElt, border;
-		border = $('<div>');
-		border.addClass("border");
-		this.table = $('<table>');
-		this.table.addClass("grid");
+		border = $('<div>').addClass("border");
+		this.table = $('<table>').addClass("grid");
 		border.append(this.table);
 		this.div.append(border);
 		for (row = 0; row < height; row++) {
@@ -141,20 +139,20 @@ Tetris.Board.prototype = new Tetris.Grid();
 
 $.extend(Tetris.Board.prototype, {
 	randomShapeType: function() {
-		// XXX: For testing:
-		// return 0;
 		return randomBetween(0, Tetris.shapeBitmaps.length - 1);
 	},
 	createShape: function() {
 		var type = this.nextType;
 		this.nextType = this.randomShapeType();
-		this.currentShape = new Tetris.Shape(this, 0, Math.round(this.getWidth() / 2 - Tetris.shapeBitmaps[type][0].length / 2), type);
+		this.currentShape = new Tetris.Shape(
+			this, 0, Math.round(this.getWidth() / 2 - Tetris.shapeBitmaps[type][0].length / 2), type
+		);
 		this.div.trigger(Tetris.eventNames.nextShapeChanged, this.nextType);
 		if (!this.currentShape.show()) {
 			this.div.trigger(Tetris.eventNames.shapeShowBlocked);
 		}
 	},
-	tick: function(onComplete) {
+	tick: function() {
 		var board = this, onComplete = function() {
 			if (board.isRunning()) {
 				board.interval = setTimeout(function() {
@@ -172,8 +170,6 @@ $.extend(Tetris.Board.prototype, {
 					onComplete();
 					board.createShape();
 				});
-				// Shape blocked by filled squares or bottom of board
-				this.div.trigger(Tetris.eventNames.shapeFallBlocked);
 			}
 		} else {
 			this.createShape();
@@ -202,6 +198,7 @@ $.extend(Tetris.Board.prototype, {
 			}
 		}
 		if (rowsToZap.length) {
+			// Shape blocked, and that newly filled rows
 			this.div.trigger(Tetris.eventNames.rowsZapped);
 			rowsToZap.effect("fade", this.delay / 2);
 			// Called when all effects on the all of the fading rows are complete
@@ -214,6 +211,8 @@ $.extend(Tetris.Board.prototype, {
 				onComplete();
 			});
 		} else {
+			// Shape blocked, but no rows newly filled as a result
+			this.div.trigger(Tetris.eventNames.shapeFallBlocked);
 			onComplete();
 		}
 	},
