@@ -74,6 +74,7 @@
 			board.stop();
 			nextShapeDisplay.clear();
 			stopGoButton.attr("disabled", "disabled");
+			Tetris.sounds.shapeShowBlocked.play();
 			$().toastmessage('showNoticeToast', 'Game over');
 		});
 		// Update the UI when the board's state changes

@@ -1,4 +1,23 @@
 /**
+ * Tetris clone in Javascript. Matty 2009/07/04.
+ * 
+ * bump.wav sound effect from:
+ * http://www.freesound.org/people/RunnerPack/sounds/87029/
+ * License terms: http://creativecommons.org/licenses/by/3.0/
+ * Converted to mp3 and ogg formats by the author of this software.
+ * 
+ * success.wav sound effect from:
+ * http://www.freesound.org/people/grunz/sounds/109662/
+ * License terms: http://creativecommons.org/licenses/by/3.0/
+ * Converted to mp3 and ogg formats by the author of this software.
+ * 
+ * Loss.wav sound effect from:
+ * http://www.freesound.org/people/themusicalnomad/sounds/253886/
+ * License terms: http://creativecommons.org/publicdomain/zero/1.0/
+ * Converted to mp3 and ogg formats by the author of this software.
+ */
+
+/**
  * Generate a random integer between (and including) the two given numbers.
  * @param min The smallest value that should ever be returned. Must be >=0.
  * @param max The largest value that should ever be returned. Must be >min.
@@ -22,6 +41,9 @@ Tetris.sounds = {
 	}),
 	rowsZapped: new Howl({
 		urls: [ 'success.mp3', 'success.ogg', 'success.wav' ]
+	}),
+	shapeShowBlocked: new Howl({
+		urls: [ 'negative-beeps.mp3', 'negative-beeps.ogg', 'negative-beeps.wav' ]
 	})
 };
 
