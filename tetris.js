@@ -1,16 +1,30 @@
 /**
- * Tetris clone in Javascript. Matty 2009/07/04.
+ * Tetris clone in Javascript.
+ * Copyright (C) matt@supermatty.com 2009.
  * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  * bump.wav sound effect from:
  * http://www.freesound.org/people/RunnerPack/sounds/87029/
  * License terms: http://creativecommons.org/licenses/by/3.0/
  * Converted to mp3 and ogg formats by the author of this software.
- * 
+ *
  * success.wav sound effect from:
  * http://www.freesound.org/people/grunz/sounds/109662/
  * License terms: http://creativecommons.org/licenses/by/3.0/
  * Converted to mp3 and ogg formats by the author of this software.
- * 
+ *
  * Loss.wav sound effect from:
  * http://www.freesound.org/people/themusicalnomad/sounds/253886/
  * License terms: http://creativecommons.org/publicdomain/zero/1.0/
