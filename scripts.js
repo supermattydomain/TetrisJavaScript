@@ -1,3 +1,5 @@
+"use strict";
+
 (function($) {
 	$(function() {
 		var boardColumns = 10,
@@ -15,6 +17,8 @@
 				39: function() { board.moveRight(); },
 				40: function() { board.fall(); }
 		};
+		// Enable jQuery UI buttons and checkboxes
+		$("button, input[type=button], input[type=checkbox]").button();
 		$(document).on('keydown', function(event) {
 			if (!board.isRunning()) {
 				return false;
