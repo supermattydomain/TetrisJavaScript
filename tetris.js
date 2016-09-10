@@ -31,6 +31,8 @@
  * Converted to mp3 and ogg formats by the author of this software.
  */
 
+"use strict";
+
 /**
  * Generate a random integer between (and including) the two given numbers.
  * @param min The smallest value that should ever be returned. Must be >=0.
@@ -42,7 +44,7 @@ function randomBetween(min, max) {
 }
 
 if (typeof(Tetris) === "undefined") {
-	Tetris = {};
+	var Tetris = {};
 }
 
 function tableCellAt(table, row, col) {
