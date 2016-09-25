@@ -30,6 +30,10 @@
 			}
 			return false;
 		});
+		$(document).on('swipeleft', function() { board.moveLeft(); });
+		$(document).on('swiperight', function() { board.moveRight(); });
+		boardDiv.on('tap', function() { board.rotate(false); });
+		boardDiv.on('taphold', function() { board.fall(); });
 		// When the stop/go button is pressed, toggle game running state.
 		// Also move input focus off the button afterwards,
 		// so a later spacebar press doesn't pause/resume the game again.
@@ -53,21 +57,21 @@
 		});
 		// When the speed slider's value changes, change the board's speed.
 		// Again, move focus off the control afterwards.
-		speedSlider.slider({
-			stop: function() {
-				board.setDelay(Tetris.delay(speedSlider.slider("option", "value")));
-				boardDiv.focus();
-				// FIXME: If the document got focus, the browser wouldn't show an ugly
-				// focus outline around the board.
-				$(document).focus();
-			}
+		speedSlider.on('slidestop', function(event, ui) {
+			board.setDelay(Tetris.delay(speedSlider.val()));
+			boardDiv.focus();
+			// FIXME: If the document got focus, the browser wouldn't show an ugly
+			// focus outline around the board.
+			$(document).focus();
 		});
 		// Increase speed when a row is filled
 		boardDiv.on(Tetris.eventNames.rowsZapped, function(event, rowIndex) {
+			var value = speedSlider.val();
 			Tetris.sounds.rowsZapped.play();
-			var value = speedSlider.slider("option", "value");
+			value++;
 			board.setDelay(Tetris.delay(value));
-			speedSlider.slider("option", "value", value + 1);
+			speedSlider.val(value);
+			speedSlider.slider("refresh");
 		});
 		// When board's next shape changes, display it in the next-shape display
 		boardDiv.on(Tetris.eventNames.nextShapeChanged, function(event, nextShapeType) {
@@ -91,7 +95,7 @@
 		boardDiv.on(Tetris.eventNames.shapeFallBlocked, function() {
 			Tetris.sounds.shapeFallBlocked.play();
 		});
-		board.setDelay(Tetris.delay(speedSlider.slider("option", "value")));
+		board.setDelay(Tetris.delay(speedSlider.val()));
 		$(document).focus();
 		board.start();
 	});
